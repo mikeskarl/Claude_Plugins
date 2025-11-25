@@ -1,0 +1,14 @@
+{
+  "name": "Claude Plugins",
+  "description": "Claude Code plugins for productivity workflows",
+  "version": "1.0.0",
+  "author": "Mike Karl",
+  "plugins": [
+    {
+      "name": "meeting-transcriber",
+      "description": "Transform meeting transcripts into professional Obsidian-formatted notes with AI-powered processing",
+      "version": "1.0.0",
+      "path": "meeting-transcriber-plugin"
+    }
+  ]
+}
