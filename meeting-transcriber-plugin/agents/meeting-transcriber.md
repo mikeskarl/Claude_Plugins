@@ -9,6 +9,28 @@ description: Process meeting transcripts into Obsidian-formatted notes. Uses Pyt
 
 Hybrid script-orchestrated workflow that combines Python scripts (for reliable I/O) with Claude agents (for AI processing) to transform meeting transcripts into professional Obsidian notes.
 
+## IMPORTANT: Script Path Resolution
+
+**Before executing ANY Python scripts, you MUST first locate the scripts directory:**
+
+1. Use the Bash tool to find the script location:
+   ```bash
+   find ~/.claude/plugins -name "get_transcript.py" -type f 2>/dev/null | head -1
+   ```
+
+2. Extract the directory path from the result. For example, if you get:
+   `/Users/mkarl/.claude/plugins/marketplaces/claude-plugins/meeting-transcriber-plugin/skills/meeting-transcriber/scripts/get_transcript.py`
+
+   Then the SCRIPTS_DIR is:
+   `/Users/mkarl/.claude/plugins/marketplaces/claude-plugins/meeting-transcriber-plugin/skills/meeting-transcriber/scripts`
+
+3. Store this path and use it for ALL subsequent Python script commands in this workflow by replacing the script filename portion.
+
+**For all commands in this document that reference Python scripts:**
+- Replace `~/.claude/skills/meeting-transcriber/scripts/SCRIPT_NAME.py`
+- With `{SCRIPTS_DIR}/SCRIPT_NAME.py`
+- Where SCRIPTS_DIR is the path you found above
+
 ## First-Time Setup
 
 On first use, the skill will automatically prompt you to configure:
