@@ -25,7 +25,12 @@ python3 ~/.claude/skills/meeting-transcriber/scripts/config.py --check
 
 ## Input Expected
 
-The user will provide a list of participant names. These can be in any format:
+**IMPORTANT:** This skill expects names to be provided in the calling prompt. Look for phrases like:
+- "normalize these participant names: John, Sarah, Mike"
+- "normalize the following names: [list]"
+- "participant names: [list]"
+
+The names can be in any format:
 - Full names: "John Smith", "jane doe"
 - First names only: "Mike", "Sarah"
 - Last names only: "Smith"
@@ -33,8 +38,13 @@ The user will provide a list of participant names. These can be in any format:
 
 ## Process
 
-### Step 1: Get Names
-If not provided, ask the user for the list of names to normalize.
+### Step 1: Extract Names from Prompt
+**Look in the calling prompt for the list of names.** They will typically be provided as:
+- A comma-separated list
+- A bulleted list
+- Part of the prompt text
+
+**DO NOT ask the user for names** - they should already be in the prompt that invoked this skill. If you cannot find names in the prompt, return an error message stating that names must be provided in the prompt.
 
 ### Step 2: Scan People Directory
 

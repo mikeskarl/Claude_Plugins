@@ -37,8 +37,8 @@ If transcript text provided:
 Based on transcript word count or meeting duration:
 
 - **Short meeting** (<2,000 words or <20 min): 400-600 words
-- **Standard meeting** (2,000-5,000 words or 20-40 min): 800-1000 words
-- **Long meeting** (>5,000 words or >40 min): 1000-1200 words
+- **Standard meeting** (2,000-5,000 words or 20-40 min): 800-1200 words
+- **Long meeting** (>5,000 words or >40 min): 1200-2000 words
 
 ### Step 3: Generate Executive Summary
 
