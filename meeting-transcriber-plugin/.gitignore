@@ -1,0 +1,21 @@
+# User-specific configuration (each user has their own paths)
+user_config.json
+
+# macOS files
+.DS_Store
+*.DS_Store
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.log
