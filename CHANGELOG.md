@@ -5,6 +5,23 @@ All notable changes to the Claude Plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2025-11-25
+
+### Important
+- **RESTART REQUIRED**: Claude Code must be restarted after updating to this version for changes to take effect
+
+### Fixed
+- **meeting-transcriber**: Fixed transcript-cleaner agent prompts not using direct instructions
+  - Root cause: Agent instructions said "(SEE DIRECT INSTRUCTIONS BELOW)" which caused agents to create their own interpretation instead of copying the full prompt
+  - Solution: Embedded the full step-by-step instructions directly inline in the prompt field
+  - Agents now receive the complete cleaning instructions without ambiguity
+  - This should resolve the issue where some chunks succeeded (using direct tools) while others failed (trying to invoke skills)
+
+### Changed
+- **meeting-transcriber**: Improved clarity of agent spawning instructions
+  - Made it explicit that agents should copy the full prompt text with placeholders replaced
+  - Added clear placeholder replacement instructions
+
 ## [1.0.7] - 2025-11-25
 
 ### Important

@@ -134,18 +134,13 @@ Execute these agent launches:
   - prompt: "Use the metadata-extractor skill to extract metadata from transcript file: {RAW_FILE from Phase 1}. Return JSON with date, title, participants, client, project, region, tags."
 
 **Agents B1-BN: transcript-cleaner (one per chunk)**
-For EACH chunk file from Phase 1B, launch a transcript-cleaner agent:
-- Use Task tool with:
-  - subagent_type: "general-purpose"
-  - description: "Clean transcript chunk {N}"
-  - prompt: (SEE DIRECT INSTRUCTIONS BELOW)
+For EACH chunk file from Phase 1B, launch a transcript-cleaner agent with this exact prompt:
 
-**DIRECT TRANSCRIPT-CLEANER INSTRUCTIONS** (use this exact format):
 ```
 Clean this transcript chunk. Follow these steps exactly:
 
 STEP 1: Use Read tool to read the input file:
-- file_path: {CHUNK_FILE_N}
+- file_path: {CHUNK_FILE_N from Phase 1B}
 
 STEP 2: Clean the transcript by removing ONLY filler words:
 - Remove: "um", "uh", "like" (when filler), "you know", "sort of", "kind of"
@@ -171,6 +166,16 @@ STATUS: SUCCESS
 
 CRITICAL: You MUST use Read and Write tools. If you just describe what you would do, you have FAILED.
 ```
+
+**Replace the placeholders in the prompt above:**
+- {CHUNK_FILE_N from Phase 1B}: The actual path from Phase 1B (e.g., /tmp/meeting-chunk-1764101485-001.md)
+- {TIMESTAMP}: The timestamp from Phase 1
+- {NNN}: The chunk number with leading zeros (e.g., 001, 002, 003)
+
+**Use Task tool for each chunk with:**
+- subagent_type: "general-purpose"
+- description: "Clean transcript chunk {N}"
+- prompt: [the full prompt text above with placeholders replaced]
 
 **IMPORTANT:** Launch metadata-extractor AND all transcript-cleaner agents in the SAME response (parallel processing).
 
