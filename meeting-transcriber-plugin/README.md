@@ -16,21 +16,28 @@ A Claude Code plugin that transforms meeting transcripts into professional Obsid
 
 ## Installation
 
-### Quick Install
+### Via Claude Code Marketplace (Recommended)
 
-```bash
-git clone <repository-url> meeting-transcriber-plugin
-cd meeting-transcriber-plugin
-./install.sh
+1. **Add the marketplace** - In Claude Code, run:
+   ```
+   /plugin marketplace add mikeskarl/Claude_Plugins
+   ```
+
+2. **Install the plugin:**
+   ```
+   /plugin install meeting-transcriber@claude-plugins
+   ```
+
+3. **Restart Claude Code** to load the plugin
+
+### Verify Installation
+
+Check that the plugin is installed:
+```
+/plugin list
 ```
 
-### Manual Install
-
-Copy the skills to your Claude Code skills directory:
-
-```bash
-cp -r skills/* ~/.claude/skills/
-```
+You should see `meeting-transcriber@claude-plugins` in the list.
 
 ## First-Time Setup
 
@@ -44,16 +51,16 @@ Configuration is saved locally and not tracked in git.
 
 ## Usage
 
-In Claude Code, invoke the skill:
-
-```
-Use the meeting-transcriber skill to process my meeting transcript
-```
-
-Or simply:
+In Claude Code, ask Claude to process your meeting transcript:
 
 ```
 Process my meeting transcript
+```
+
+Or:
+
+```
+Use the meeting transcriber to process my transcript
 ```
 
 The plugin will:
@@ -66,27 +73,27 @@ The plugin will:
 
 ## Reconfigure
 
-To change your Obsidian paths:
-
-```bash
-python3 ~/.claude/skills/meeting-transcriber/scripts/config.py --reconfigure
+To change your Obsidian paths, the config is stored at:
+```
+~/.claude/plugins/marketplaces/claude-plugins/meeting-transcriber-plugin/skills/meeting-transcriber/user_config.json
 ```
 
-To view current configuration:
-
+Delete this file and run the plugin again to reconfigure, or run:
 ```bash
-python3 ~/.claude/skills/meeting-transcriber/scripts/config.py --check
+python3 ~/.claude/plugins/marketplaces/claude-plugins/meeting-transcriber-plugin/skills/meeting-transcriber/scripts/config.py --reconfigure
 ```
 
-## Skills Included
+## Agents Included
 
-| Skill | Purpose |
+| Agent | Purpose |
 |-------|---------|
-| meeting-transcriber | Main orchestrator - coordinates all other skills |
-| metadata-extractor | Extracts date, title, participants from transcript |
-| transcript-cleaner | Cleans transcript while preserving 95%+ content |
-| people-normalizer | Normalizes names against your People vault |
-| meeting-notes-generator | Generates structured meeting notes |
+| meeting-transcriber | Main orchestrator - coordinates all processing |
+
+The meeting-transcriber agent coordinates these sub-skills:
+- metadata-extractor - Extracts date, title, participants from transcript
+- transcript-cleaner - Cleans transcript while preserving 95%+ content
+- people-normalizer - Normalizes names against your People vault
+- meeting-notes-generator - Generates structured meeting notes
 
 ## Requirements
 
@@ -95,23 +102,27 @@ python3 ~/.claude/skills/meeting-transcriber/scripts/config.py --check
 - macOS (for `open` command in web dialogs)
 - Obsidian vault (for output)
 
-## Configuration File
+## Updating the Plugin
 
-User configuration is stored at:
+To get the latest version:
 ```
-~/.claude/skills/meeting-transcriber/user_config.json
+/plugin marketplace update claude-plugins
 ```
 
-Format:
-```json
-{
-  "obsidian_vault": "/path/to/your/ObsidianVault",
-  "meetings_folder": "Calendar/Meetings",
-  "people_folder": "Atlas/People"
-}
+Then restart Claude Code.
+
+## Uninstalling
+
+```
+/plugin uninstall meeting-transcriber@claude-plugins
 ```
 
 ## Troubleshooting
+
+### Plugin not recognized after installation
+- Make sure you restarted Claude Code after installing
+- Run `/plugin list` to verify installation
+- Try `/plugin marketplace update claude-plugins` and restart again
 
 ### Web dialog doesn't open
 - Ensure Python 3 is installed
@@ -119,7 +130,7 @@ Format:
 - Try opening the URL manually in your browser
 
 ### Configuration issues
-- Delete `~/.claude/skills/meeting-transcriber/user_config.json` and run again
+- Delete the `user_config.json` file and run again
 - Ensure your Obsidian vault path exists
 
 ### Processing errors
