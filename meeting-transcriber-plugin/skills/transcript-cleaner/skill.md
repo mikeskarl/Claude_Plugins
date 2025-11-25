@@ -105,7 +105,16 @@ After cleaning:
 
 ### Step 5: Save Output
 
+**ALWAYS write an output file, regardless of cleaning quality:**
+
+1. If reduction is 0-15%: Write the cleaned transcript
+2. If reduction is >15%: Write the best cleaned version available, include warning in report
+3. If input file cannot be read: Copy input text to output file
+4. If any error occurs: Write original content to output file
+
 Use Write tool to save cleaned transcript to output file path.
+
+**Critical:** The output file MUST be created even if cleaning was unsuccessful. The coordinator skill depends on this file existing.
 
 ### Step 6: Report Results
 
@@ -243,9 +252,19 @@ For transcripts >10,000 words:
 - Cannot proceed
 
 **If cleaning results in >15% reduction:**
-- Report error: "Excessive reduction detected"
-- Do not save output
-- Review and re-clean more conservatively
+- Write the cleaned transcript to output file anyway (don't skip writing)
+- Report warning: "Excessive reduction detected: {X}% removed"
+- Include both cleaned and original word counts
+- Note: "File saved with warning. Coordinator may choose to use original chunk instead."
+
+## Fallback Output Guarantee
+
+If ANY error prevents proper cleaning:
+1. Write the original input content to the output file path
+2. Report the error clearly
+3. Mark status as "FALLBACK: Original content preserved"
+
+This ensures downstream processing can continue even if cleaning fails.
 
 ## Notes
 
