@@ -1,7 +1,7 @@
 {
   "name": "meeting-transcriber",
   "description": "Transform meeting transcripts into professional Obsidian-formatted notes with AI-powered processing",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": {
     "name": "Mike Karl"
   },

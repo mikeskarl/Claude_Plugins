@@ -119,16 +119,16 @@ def build_yaml_frontmatter(metadata, participants):
     """Build YAML frontmatter."""
     created_date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    # Get date and time separately
-    date_met = metadata.get('date', created_date.split()[0])
-    time_met = metadata.get('time', '09:00')
+    # Get date and time separately - use 'or' to handle None values
+    date_met = metadata.get('date') or created_date.split()[0]
+    time_met = metadata.get('time') or '09:00'
 
     # Ensure time is properly formatted (HH:mm)
-    if time_met and ':' not in time_met:
+    if time_met and ':' not in str(time_met):
         time_met = '09:00'
 
-    # Format tags
-    tags_list = metadata.get('tags', [])
+    # Format tags - handle None
+    tags_list = metadata.get('tags') or []
     if tags_list:
         tags_str = '[' + ', '.join(f'"{tag}"' for tag in tags_list) + ']'
     else:
@@ -138,15 +138,16 @@ def build_yaml_frontmatter(metadata, participants):
     participants_yaml = '\n'.join(f'  - "{p}"' for p in participants)
 
     # Extract first sentence from meeting notes for summary (will be added by caller)
+    # Use 'or' to handle None values for all metadata fields
     yaml = f"""---
 created date: {created_date}
 type: Meeting
 tags: {tags_str}
 date met: {date_met}
 time: {time_met}
-client: "{metadata.get('client', '')}"
-project: "{metadata.get('project', '')}"
-region: "{metadata.get('region', '')}"
+client: "{metadata.get('client') or ''}"
+project: "{metadata.get('project') or ''}"
+region: "{metadata.get('region') or ''}"
 participants:
 {participants_yaml}
 previous meeting:
@@ -267,8 +268,9 @@ def assemble_and_save(cleaned_file, metadata_text, people_text, notes_text):
 """
 
     # Build filename (date only, no time)
-    date_str = metadata.get('date', datetime.now().strftime("%Y-%m-%d"))
-    title_clean = sanitize_filename(metadata['title'])
+    # Use 'or' to handle both missing keys AND None values
+    date_str = metadata.get('date') or datetime.now().strftime("%Y-%m-%d")
+    title_clean = sanitize_filename(metadata.get('title') or "Meeting Notes")
     filename = f"{date_str} {title_clean}.md"
 
     # Save to Obsidian vault
