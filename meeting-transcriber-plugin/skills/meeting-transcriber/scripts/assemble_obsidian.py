@@ -179,9 +179,56 @@ def sanitize_filename(title):
     return title.strip()
 
 
+def validate_inputs(cleaned_file, metadata_text, people_text, notes_text):
+    """Validate all inputs before assembly. Returns (is_valid, errors)."""
+    errors = []
+    warnings = []
+
+    # Check cleaned file exists and has content
+    if not Path(cleaned_file).exists():
+        errors.append(f"Cleaned transcript file not found: {cleaned_file}")
+    else:
+        content = read_file(cleaned_file)
+        if not content or len(content.strip()) < 100:
+            errors.append(f"Cleaned transcript file is empty or too short: {cleaned_file}")
+        else:
+            word_count = len(content.split())
+            if word_count < 50:
+                warnings.append(f"Cleaned transcript has very few words ({word_count})")
+
+    # Check metadata is not empty/default
+    if not metadata_text or len(metadata_text.strip()) < 20:
+        errors.append("Metadata text is empty or too short - metadata-extractor may have failed")
+
+    # Check people text has wiki-links
+    if not people_text or '[[' not in people_text:
+        warnings.append("People text has no wiki-links - people-normalizer may have failed")
+
+    # Check notes text has substantial content
+    if not notes_text or len(notes_text.strip()) < 200:
+        errors.append("Notes text is empty or too short - meeting-notes-generator may have failed")
+
+    return (len(errors) == 0, errors, warnings)
+
+
 def assemble_and_save(cleaned_file, metadata_text, people_text, notes_text):
     """Assemble complete Obsidian file and save."""
     print("=== Meeting Transcriber: Assembly ===")
+
+    # Validate all inputs first
+    is_valid, errors, warnings = validate_inputs(cleaned_file, metadata_text, people_text, notes_text)
+
+    if errors:
+        print("ERROR: Input validation failed:", file=sys.stderr)
+        for error in errors:
+            print(f"  - {error}", file=sys.stderr)
+        print("\nOne or more agents may have failed silently. Check agent outputs.", file=sys.stderr)
+        return None
+
+    if warnings:
+        print("WARNING: Some inputs may be incomplete:")
+        for warning in warnings:
+            print(f"  - {warning}")
 
     # Read cleaned transcript
     cleaned_transcript = read_file(cleaned_file)

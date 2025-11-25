@@ -146,31 +146,59 @@ If there are many chunks (>10), consider launching in batches of 5-10 agents at 
 
 Wait for all agents to complete before proceeding.
 
+#### Step 2A-VERIFY: Verify Cleaning Agents Succeeded
+
+**CRITICAL: Do this BEFORE reassembly. Agents can fail silently.**
+
+1. **Check which output files were created:**
+   ```bash
+   ls -la /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md 2>&1 | wc -l
+   ```
+   Compare the count to CHUNK_COUNT from Phase 1B.
+
+2. **Identify failed chunks:**
+   - If file count < CHUNK_COUNT, some agents failed
+   - Also check agent summaries for "0 tool uses" (indicates silent failure)
+   - List expected vs actual to find gaps
+
+3. **If chunks are missing, RETRY failed chunks:**
+   - Re-launch transcript-cleaner agents for ONLY the missing chunks
+   - Wait for retry agents to complete
+   - Check files again
+
+4. **If retry still fails, use FALLBACK:**
+   For each still-missing cleaned chunk file:
+   ```bash
+   cp /tmp/meeting-chunk-{TIMESTAMP}-{N}.md /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{N}.md
+   ```
+   Log: "WARNING: Chunk {N} could not be cleaned, using original content"
+
+5. **Final verification:**
+   ```bash
+   ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | wc -l
+   ```
+   This MUST equal CHUNK_COUNT before proceeding.
+
 #### Step 2A-2: Reassemble Cleaned Chunks
 
 Execute this action:
 
-1. **Collect all cleaned chunk outputs**:
-   - From each Agent B output, capture the cleaned text
-   - Maintain the order (chunk 1, 2, 3, etc.)
+1. **Reassemble all cleaned chunks using cat:**
+   ```bash
+   cat /tmp/meeting-chunk-cleaned-{TIMESTAMP}-001.md \
+       /tmp/meeting-chunk-cleaned-{TIMESTAMP}-002.md \
+       ... \
+       > {CLEANED_FILE from Phase 1}
+   ```
+   List all chunk files in order (001, 002, 003, etc.)
 
-2. **Run reassembly script**:
-   - Use Bash tool with command:
-     ```
-     python3 {SCRIPTS_DIR}/reassemble_chunks.py \
-       "{CLEANED_FILE from Phase 1}" \
-       "{TIMESTAMP}" \
-       "{cleaned_chunk_1_output}" \
-       "{cleaned_chunk_2_output}" \
-       ...
-     ```
-   - Script combines all chunks into single cleaned transcript
-   - Script saves to CLEANED_FILE
-   - Script cleans up temporary chunk files
-
-3. **Verify reassembly**:
+2. **Verify reassembly:**
+   ```bash
+   wc -w {CLEANED_FILE}
+   ```
    - Confirm CLEANED_FILE was created
    - Note total word count from script output
+   - Should be close to original word count (within 5-10%)
 
 #### Step 2B: Process Metadata Results
 
@@ -198,6 +226,18 @@ Use Task tool:
 - prompt: "Use the people-normalizer skill to normalize these participant names: {comma-separated list of participants from Step 2B}. Return the wiki-link formatted list for YAML and note which are new vs matched."
 
 Wait for agent to complete.
+
+**Verify people-normalizer success:**
+1. Check agent output for `=== PEOPLE-NORMALIZER VERIFICATION ===` block
+2. Verify `STATUS: SUCCESS` and `NAMES_PROCESSED` > 0
+3. Extract `WIKI_LINK_LIST` from verification block
+
+**If verification missing or "0 tool uses":**
+1. RETRY once with same prompt
+2. If retry fails, use FALLBACK:
+   - Apply Title Case to each participant name
+   - Wrap in wiki-links: `[[First Last]]`
+   - Log: "WARNING: People normalizer failed, using fallback formatting"
 
 Store normalized participant names (with wiki-links) for Phase 3.
 
@@ -311,23 +351,80 @@ This skill coordinates 4 specialized agents (with chunked processing for large t
 - Name normalization (vault matching)
 - Note generation (professional summarization)
 
-### Error Handling
+### Error Handling and Agent Failure Detection
 
-**If get_transcript.py fails:**
+**CRITICAL: Agents can fail silently. You MUST verify success.**
+
+#### Detecting Agent Failures
+
+After each agent batch completes, check for these failure indicators:
+
+1. **"0 tool uses" in agent summary** = Agent likely failed without doing work
+2. **Missing verification block** = Agent did not complete properly
+3. **Missing output files** = Agent failed to write results
+4. **STATUS: FAILED** in verification block = Agent reported failure
+
+#### Verifying Transcript Cleaner Success
+
+After transcript-cleaner agents complete:
+
+1. **Check which output files were created:**
+   ```bash
+   ls -la /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md
+   ```
+
+2. **Compare against expected chunks:**
+   - If CHUNK_COUNT was 18, you should see 18 cleaned files
+   - Missing files indicate failed agents
+
+3. **Check for verification blocks in agent output:**
+   - Look for `=== TRANSCRIPT-CLEANER VERIFICATION ===`
+   - Check `OUTPUT_FILE_WRITTEN: YES` and `STATUS: SUCCESS`
+
+#### Retry Logic for Failed Chunks
+
+If any transcript-cleaner agents failed (0 tool uses, missing files, or STATUS: FAILED):
+
+1. **Identify failed chunks** by comparing expected vs actual output files
+2. **Retry failed chunks ONCE** by re-launching agents for just those chunks
+3. **If retry fails**, use original chunk content as fallback:
+   - Copy original chunk to cleaned file path
+   - Log warning: "Chunk {N} could not be cleaned, using original"
+
+#### Verifying People Normalizer Success
+
+After people-normalizer agent completes:
+
+1. **Check for verification block:**
+   - Look for `=== PEOPLE-NORMALIZER VERIFICATION ===`
+   - Verify `STATUS: SUCCESS` and `NAMES_PROCESSED` > 0
+
+2. **If verification missing or STATUS: FAILED:**
+   - Retry ONCE
+   - If retry fails, use fallback: Title Case all names with wiki-links
+
+#### Verifying Other Agents
+
+**metadata-extractor:**
+- Must return JSON with at least `date` and `title` fields
+- If missing, ask user for date and use "Meeting Notes" as title
+
+**meeting-notes-generator:**
+- Output must be >200 words
+- Must contain `##` headers for structure
+- If failed, report error (cannot fallback - notes are required)
+
+#### If get_transcript.py fails:
 - Check that AppleScript dialogs are allowed
 - User may have cancelled dialog
 - Report error and exit
 
-**If agent fails:**
-- Report which agent failed
-- Show error message
-- Ask user if they want to retry or abort
-
-**If assemble_obsidian.py fails:**
+#### If assemble_obsidian.py fails:
 - Check that Obsidian vault directory exists
 - Check agent outputs were captured correctly
 - Temp files are preserved for debugging
 - Report error with file paths
+- Assembly script now validates inputs and reports which agents may have failed
 
 ## Notes
 

@@ -9,6 +9,31 @@ description: Normalize participant names against the Obsidian People vault. Take
 
 This is a lightweight, focused utility that normalizes participant names against your Obsidian People vault. It performs fuzzy matching and returns properly formatted wiki-links.
 
+## ⚠️ MANDATORY SUCCESS VERIFICATION ⚠️
+
+**At the END of your processing, you MUST include this verification block:**
+
+```
+=== PEOPLE-NORMALIZER VERIFICATION ===
+NAMES_PROCESSED: [number]
+NAMES_MATCHED: [number]
+NAMES_NEW: [number]
+STATUS: [SUCCESS/PARTIAL/FAILED]
+WIKI_LINK_LIST:
+  - [[Name 1]]
+  - [[Name 2]]
+=== END VERIFICATION ===
+```
+
+**This verification block is REQUIRED. The orchestrator will check for it to verify the agent completed successfully.**
+
+If you encounter errors:
+1. Set STATUS: FAILED or PARTIAL
+2. Include ERROR_REASON: [explanation]
+3. Still provide any names you were able to process
+
+**Never return "Done" without this verification block. Never exit silently.**
+
 ## Configuration
 
 **People Directory Path:**

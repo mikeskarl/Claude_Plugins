@@ -11,7 +11,7 @@ Clean and improve transcript readability while preserving ALL substantive conten
 
 **CRITICAL RULE: Preserve 95-100% of original word count**
 
-## ⚠️ MANDATORY OUTPUT FILE REQUIREMENT ⚠️
+## ⚠️ MANDATORY OUTPUT FILE REQUIREMENT - FAILURE REPORTING ⚠️
 
 **YOU MUST ALWAYS CREATE THE OUTPUT FILE - NO EXCEPTIONS**
 
@@ -22,6 +22,30 @@ Even if:
 - Input cannot be read (write error message to output file)
 
 **The coordinator skill REQUIRES this file to exist. If you don't create it, the entire workflow fails.**
+
+## ⚠️ MANDATORY SUCCESS VERIFICATION ⚠️
+
+**At the END of your processing, you MUST include this verification block:**
+
+```
+=== TRANSCRIPT-CLEANER VERIFICATION ===
+OUTPUT_FILE_WRITTEN: [YES/NO]
+OUTPUT_FILE_PATH: [path to output file]
+INPUT_WORD_COUNT: [number]
+OUTPUT_WORD_COUNT: [number]
+REDUCTION_PERCENT: [number]%
+STATUS: [SUCCESS/PARTIAL/FAILED]
+=== END VERIFICATION ===
+```
+
+**This verification block is REQUIRED. The orchestrator will check for it to verify the agent completed successfully.**
+
+If you cannot write the output file for any reason:
+1. Set OUTPUT_FILE_WRITTEN: NO
+2. Set STATUS: FAILED
+3. Include ERROR_REASON: [explanation]
+
+**Never return "Done" without this verification block. Never exit silently.**
 
 ## Input Expected
 
