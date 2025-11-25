@@ -2,7 +2,11 @@
   "name": "meeting-transcriber",
   "description": "Transform meeting transcripts into professional Obsidian-formatted notes with AI-powered processing",
   "version": "1.0.0",
-  "author": "Mike Karl",
-  "repository": "https://github.com/mikeskarl/Claude_Plugins",
-  "keywords": ["meeting", "transcription", "obsidian", "notes", "productivity"]
+  "author": {
+    "name": "Mike Karl"
+  },
+  "keywords": ["meeting", "transcription", "obsidian", "notes", "productivity"],
+  "agents": [
+    "./agents/meeting-transcriber.md"
+  ]
 }
