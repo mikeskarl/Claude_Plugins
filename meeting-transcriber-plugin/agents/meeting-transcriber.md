@@ -138,80 +138,102 @@ For EACH chunk file from Phase 1B, launch a transcript-cleaner agent:
 - Use Task tool with:
   - subagent_type: "general-purpose"
   - description: "Clean transcript chunk {N}"
-  - prompt: "Use the transcript-cleaner skill to clean transcript. Input file: {CHUNK_FILE_N from Phase 1B}. Output file: /tmp/meeting-chunk-cleaned-{timestamp}-{N}.md. Preserve 95-100% of word count. Do NOT summarize."
+  - prompt: (SEE SIMPLIFIED PROMPT BELOW)
+
+**SIMPLIFIED TRANSCRIPT-CLEANER PROMPT** (use this exact format):
+```
+Clean this transcript chunk. You MUST:
+1. Use Read tool to read: {CHUNK_FILE_N}
+2. Remove ONLY filler words (um, uh, like, you know). Do NOT rewrite or summarize.
+3. Use Write tool to save to: /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{NNN}.md
+4. Output the verification block.
+
+If you don't use Read and Write tools, you have FAILED.
+```
 
 **IMPORTANT:** Launch metadata-extractor AND all transcript-cleaner agents in the SAME response (parallel processing).
 
-If there are many chunks (>10), consider launching in batches of 5-10 agents at a time to avoid overwhelming the system.
+If there are many chunks (>10), launch in batches of 10 agents at a time.
 
 Wait for all agents to complete before proceeding.
 
-#### Step 2A-VERIFY: Verify Cleaning Agents Succeeded
+---
 
-**CRITICAL: Do this BEFORE reassembly. Agents can fail silently.**
+## ⛔ STOP - CHECKPOINT 1 ⛔
 
-1. **Check which output files were created:**
-   ```bash
-   ls -la /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md 2>&1 | wc -l
-   ```
-   Compare the count to CHUNK_COUNT from Phase 1B.
+### Step 2A-VERIFY: YOU MUST DO THIS BEFORE CONTINUING
 
-2. **Identify failed chunks:**
-   - If file count < CHUNK_COUNT, some agents failed
-   - Also check agent summaries for "0 tool uses" (indicates silent failure)
-   - List expected vs actual to find gaps
+**DO NOT SKIP THIS STEP. Run these commands NOW:**
 
-3. **If chunks are missing, RETRY failed chunks:**
-   - Re-launch transcript-cleaner agents for ONLY the missing chunks
-   - Wait for retry agents to complete
-   - Check files again
+```bash
+# Count how many cleaned files exist
+ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md 2>/dev/null | wc -l
+```
 
-4. **If retry still fails, use FALLBACK:**
-   For each still-missing cleaned chunk file:
-   ```bash
-   cp /tmp/meeting-chunk-{TIMESTAMP}-{N}.md /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{N}.md
-   ```
-   Log: "WARNING: Chunk {N} could not be cleaned, using original content"
+**GATE CHECK:**
+- Expected files: {CHUNK_COUNT}
+- Actual files: [result of ls command]
+- If actual < expected: SOME AGENTS FAILED
 
-5. **Final verification:**
-   ```bash
-   ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | wc -l
-   ```
-   This MUST equal CHUNK_COUNT before proceeding.
+**Also check agent summaries:**
+- Any agent with "0 tool uses" = FAILED (did not use Read/Write)
+
+### If files are missing:
+
+**Step A: Identify which chunks failed**
+```bash
+# List what exists
+ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md
+```
+Compare to expected: 001.md, 002.md, ... {CHUNK_COUNT}.md
+
+**Step B: Retry failed chunks ONCE**
+Re-launch transcript-cleaner for ONLY the missing chunk numbers.
+
+**Step C: If retry still fails, use FALLBACK (copy original)**
+```bash
+cp /tmp/meeting-chunk-{TIMESTAMP}-{N}.md /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{N}.md
+```
+Do this for each still-missing file.
+
+**Step D: Final count MUST equal CHUNK_COUNT**
+```bash
+ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | wc -l
+```
+
+**⛔ DO NOT PROCEED until file count equals CHUNK_COUNT ⛔**
+
+---
 
 #### Step 2A-2: Reassemble Cleaned Chunks
 
-**⚠️ DO NOT read the chunk files into context! Use the Python script or cat command.**
+## 🚫 DO NOT READ CHUNK FILES INTO CONTEXT 🚫
 
-Execute this action using the Python reassemble script:
+**Use the reassemble script - DO NOT use Read tool on chunk files:**
 
 ```bash
 python3 {SCRIPTS_DIR}/reassemble_chunks.py \
-  "{CLEANED_FILE from Phase 1}" \
+  "{CLEANED_FILE}" \
   "{TIMESTAMP}" \
   --from-files \
-  /tmp/meeting-chunk-cleaned-{TIMESTAMP}-001.md \
-  /tmp/meeting-chunk-cleaned-{TIMESTAMP}-002.md \
-  /tmp/meeting-chunk-cleaned-{TIMESTAMP}-003.md \
-  ... (list all chunk files in order)
+  $(ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V | tr '\n' ' ')
 ```
 
-**Alternative (simpler):** Use a shell glob to reassemble:
+**Or use cat (simpler):**
 ```bash
-cat /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V > {CLEANED_FILE from Phase 1}
+cat $(ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V) > {CLEANED_FILE}
 ```
 
-**Why use scripts instead of reading files?**
-- Reading 18+ chunk files wastes tokens
-- Python script handles cleanup automatically
-- Shell commands are faster and more reliable
+**WHY?**
+- Reading 18 files wastes ~20,000 tokens
+- The script does it in 0 tokens
+- You will run out of context if you read files
 
-**Verify reassembly:**
+**Verify the reassembly worked:**
 ```bash
 wc -w {CLEANED_FILE}
 ```
-- Confirm CLEANED_FILE was created and has content
-- Should be close to original word count (within 5-10%)
+Should show word count close to original (within 25% for cleaned transcript).
 
 #### Step 2B: Process Metadata Results
 
