@@ -1,0 +1,11 @@
+{
+  "name": "claude-plugins",
+  "description": "Claude Code plugins for productivity workflows - includes Meeting Transcriber",
+  "version": "1.0.0",
+  "author": "Mike Karl",
+  "repository": "https://github.com/mikeskarl/Claude_Plugins",
+  "keywords": ["meeting", "transcription", "obsidian", "notes", "productivity"],
+  "plugins": [
+    "meeting-transcriber-plugin"
+  ]
+}
