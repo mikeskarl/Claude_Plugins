@@ -5,6 +5,24 @@ All notable changes to the Claude Plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.10] - 2025-11-25
+
+### Important
+- **RESTART REQUIRED**: Claude Code must be restarted after updating to this version for changes to take effect
+
+### Fixed
+- **meeting-transcriber**: Ultra-explicit agent spawning instructions to prevent misinterpretation
+  - Root cause: Section header "transcript-cleaner" triggered agents to create short prompts like "Use the transcript-cleaner skill..." instead of copying full instructions
+  - Changed header to generic "Launch Cleaning Agents for Each Chunk" to avoid triggering skill invocation pattern
+  - Added prominent prohibition section: "CRITICAL: DO NOT CREATE SHORT PROMPTS" with explicit examples of what NOT to do
+  - Moved complete example Task tool call to TOP (before copyable text) so agents see expected result first
+  - Added ultra-explicit copying instruction: "COPY THE TEXT BELOW EXACTLY, WORD FOR WORD, CHARACTER FOR CHARACTER"
+  - Added explicit failure condition: "If your Task tool prompt contains phrases like 'use the skill', YOU HAVE FAILED"
+  - This should finally resolve the issue where 3/18 chunks (4, 7, 10 in v1.0.9 test) failed with 0 tool uses
+
+### Technical Details
+The v1.0.9 START/END PROMPT markers were not sufficient because the section header itself ("Agents B1-BN: transcript-cleaner") was triggering the wrong interpretation. The word "transcript-cleaner" in the header caused orchestrating agents to think they should invoke that skill, overriding all instructions below. v1.0.10 eliminates the trigger word from the header and adds multiple layers of explicit prohibition to make misinterpretation impossible.
+
 ## [1.0.9] - 2025-11-25
 
 ### Important
