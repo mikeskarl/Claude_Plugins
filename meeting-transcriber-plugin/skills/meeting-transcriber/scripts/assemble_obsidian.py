@@ -29,6 +29,15 @@ def parse_metadata(metadata_text):
     if json_match:
         try:
             metadata = json.loads(json_match.group())
+            # Ensure time field exists (backward compatibility)
+            if 'time' not in metadata:
+                # Try to extract time from date field if it's in old format
+                if metadata.get('date') and ' ' in str(metadata['date']):
+                    date_parts = metadata['date'].split()
+                    metadata['date'] = date_parts[0]
+                    metadata['time'] = date_parts[1] if len(date_parts) > 1 else "09:00"
+                else:
+                    metadata['time'] = "09:00"
             return metadata
         except:
             pass
@@ -36,6 +45,7 @@ def parse_metadata(metadata_text):
     # Fallback: parse line by line
     metadata = {
         "date": None,
+        "time": "09:00",
         "title": "Meeting Notes",
         "participants": [],
         "client": "",
@@ -46,7 +56,16 @@ def parse_metadata(metadata_text):
 
     for line in metadata_text.split('\n'):
         if 'Date:' in line:
-            metadata['date'] = line.split('Date:')[1].strip()
+            date_str = line.split('Date:')[1].strip()
+            # Handle old format with time included
+            if ' ' in date_str:
+                date_parts = date_str.split()
+                metadata['date'] = date_parts[0]
+                metadata['time'] = date_parts[1] if len(date_parts) > 1 else "09:00"
+            else:
+                metadata['date'] = date_str
+        elif 'Time:' in line:
+            metadata['time'] = line.split('Time:')[1].strip()
         elif 'Title:' in line:
             metadata['title'] = line.split('Title:')[1].strip()
         elif 'Client:' in line:
@@ -99,7 +118,14 @@ def extract_meeting_notes(notes_text):
 def build_yaml_frontmatter(metadata, participants):
     """Build YAML frontmatter."""
     created_date = datetime.now().strftime("%Y-%m-%d %H:%M")
-    date_met = metadata.get('date', created_date.split()[0] + " 09:00")
+
+    # Get date and time separately
+    date_met = metadata.get('date', created_date.split()[0])
+    time_met = metadata.get('time', '09:00')
+
+    # Ensure time is properly formatted (HH:mm)
+    if time_met and ':' not in time_met:
+        time_met = '09:00'
 
     # Format tags
     tags_list = metadata.get('tags', [])
@@ -117,6 +143,7 @@ created date: {created_date}
 type: Meeting
 tags: {tags_str}
 date met: {date_met}
+time: {time_met}
 client: "{metadata.get('client', '')}"
 project: "{metadata.get('project', '')}"
 region: "{metadata.get('region', '')}"
@@ -166,6 +193,7 @@ def assemble_and_save(cleaned_file, metadata_text, people_text, notes_text):
     metadata = parse_metadata(metadata_text)
     print(f"INFO: Meeting title: {metadata['title']}")
     print(f"INFO: Meeting date: {metadata['date']}")
+    print(f"INFO: Meeting time: {metadata.get('time', '09:00')}")
 
     # Parse participants
     participants = parse_participants(people_text)
@@ -191,8 +219,8 @@ def assemble_and_save(cleaned_file, metadata_text, people_text, notes_text):
 {cleaned_transcript}
 """
 
-    # Build filename
-    date_str = metadata.get('date', datetime.now().strftime("%Y-%m-%d %H:%M")).split()[0]
+    # Build filename (date only, no time)
+    date_str = metadata.get('date', datetime.now().strftime("%Y-%m-%d"))
     title_clean = sanitize_filename(metadata['title'])
     filename = f"{date_str} {title_clean}.md"
 

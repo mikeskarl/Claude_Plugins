@@ -14,6 +14,8 @@ Lightweight utility that extracts structured metadata from meeting transcripts. 
 The user will provide:
 - **Transcript file path** (required): Path to the raw transcript file
 - Or **Transcript text** (alternative): Raw transcript as text
+- **User-provided date** (optional): Meeting date from user input (YYYY-MM-DD format)
+- **User-provided time** (optional): Meeting time from user input (HH:mm format)
 
 ## Process
 
@@ -28,12 +30,16 @@ If transcript text provided:
 ### Step 2: Extract Required Fields
 
 **Meeting Date and Time** (REQUIRED)
-- Look for explicit date/time references: "Today is November 12", "Meeting on 11/12/2025"
-- Look for context clues: "last Tuesday", "this morning"
-- Look for calendar invites or headers in transcript
-- Format: YYYY-MM-DD HH:mm
-- If time not mentioned, use "09:00" as default
-- If date unclear, set to null (coordinator will ask user)
+- **PRIORITY 1:** Use user-provided date and time if provided (passed from coordinator)
+- **PRIORITY 2:** If not provided by user, extract from transcript:
+  - Look for explicit date/time references: "Today is November 12", "Meeting on 11/12/2025"
+  - Look for context clues: "last Tuesday", "this morning"
+  - Look for calendar invites or headers in transcript
+- **Formatting:**
+  - Date format: YYYY-MM-DD
+  - Time format: HH:mm (24-hour)
+  - If time not mentioned and not provided, use "09:00" as default
+  - If date unclear and not provided, set to null (coordinator will ask user)
 
 **Meeting Title/Subject** (REQUIRED)
 - Extract from: Meeting headers, calendar invites, opening remarks
@@ -104,7 +110,8 @@ Return results in this exact JSON structure:
 
 ```json
 {
-  "date": "2025-11-12 09:00",
+  "date": "2025-11-12",
+  "time": "14:30",
   "title": "SCADA System Standards Review",
   "participants": ["Mike", "John Smith", "Sarah", "Bob"],
   "client": "ABC Water District",
@@ -115,7 +122,8 @@ Return results in this exact JSON structure:
 ```
 
 **Field requirements:**
-- `date`: String in "YYYY-MM-DD HH:mm" format, or null if unclear
+- `date`: String in "YYYY-MM-DD" format, or null if unclear (prefer user-provided value)
+- `time`: String in "HH:mm" format (24-hour), or "09:00" if unclear (prefer user-provided value)
 - `title`: String, 5-10 words
 - `participants`: Array of strings (minimum 1, always include Mike if mentioned)
 - `client`: String or empty string ""
@@ -128,7 +136,9 @@ Also provide a human-readable summary after the JSON:
 ```
 Metadata Extraction Complete
 
-Date: 2025-11-12 09:00
+Date: 2025-11-12
+Time: 14:30
+Source: User-provided (or "Extracted from transcript")
 Title: SCADA System Standards Review
 Participants: 4 people identified
   - Mike
@@ -158,10 +168,12 @@ Tags: technical, standards, planning
 - Don't assume relationships (e.g., don't expand "Smith" to "John Smith" unless confirmed)
 - When in doubt, prefer fewer participants (false negatives) over including non-attendees (false positives)
 
-### Date Extraction
-- Be conservative: only extract if confident
+### Date/Time Extraction
+- **Always prioritize user-provided date/time over transcript extraction**
+- Be conservative: only extract from transcript if confident
 - Prefer explicit dates over implied dates
-- If unclear, return null (don't guess)
+- If unclear and not provided by user, return null for date (don't guess)
+- If time unclear and not provided by user, default to "09:00"
 
 ### Title Generation
 - Be specific and descriptive
@@ -228,9 +240,10 @@ Speaker 1: Great, keep me posted
 - Cannot proceed
 
 **If date cannot be determined:**
-- Set `date: null`
-- Note in summary: "Date: Not specified in transcript"
+- Set `date: null` and `time: "09:00"`
+- Note in summary: "Date: Not specified (user did not provide, not found in transcript)"
 - Coordinator will ask user for date
+- Time will default to 09:00 unless user provided it
 
 **If participants cannot be identified:**
 - At minimum, include ["Mike Karl"] if Mike appears anywhere

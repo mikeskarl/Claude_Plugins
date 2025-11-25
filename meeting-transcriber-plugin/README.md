@@ -4,11 +4,12 @@ A Claude Code plugin that transforms meeting transcripts into professional Obsid
 
 ## Features
 
-- Web-based transcript input dialog
+- Web-based input dialog with date/time collection
 - Handles transcripts of any size (tested up to 50,000+ words)
+- Optional meeting date and time input (defaults to today/09:00 if not provided)
 - Chunked processing prevents timeouts on long transcripts
 - Parallel AI agent processing for efficiency
-- Automatic YAML frontmatter generation
+- Automatic YAML frontmatter generation with separate date and time fields
 - Meeting notes with executive summary, discussions, decisions, and action items
 - Cleaned transcript preservation (95-100% of original content)
 - People name normalization against your Obsidian vault
@@ -64,12 +65,17 @@ Use the meeting transcriber to process my transcript
 ```
 
 The plugin will:
-1. Open a web dialog to paste your transcript
-2. Extract metadata (date, title, participants)
+1. Open a web dialog where you can:
+   - Enter the meeting date (defaults to today)
+   - Enter the meeting time (defaults to 09:00)
+   - Paste your transcript
+2. Extract metadata (title, participants, client, project, etc.)
 3. Clean the transcript
 4. Normalize participant names against your People vault
 5. Generate structured meeting notes
-6. Save everything to your Obsidian vault
+6. Save everything to your Obsidian vault with proper YAML frontmatter
+
+**Note:** Date and time fields are optional. If you don't provide them, the system will attempt to extract them from the transcript. If extraction fails, you'll be prompted to provide the date.
 
 ## Reconfigure
 
@@ -90,7 +96,7 @@ python3 ~/.claude/plugins/marketplaces/claude-plugins/meeting-transcriber-plugin
 | meeting-transcriber | Main orchestrator - coordinates all processing |
 
 The meeting-transcriber agent coordinates these sub-skills:
-- metadata-extractor - Extracts date, title, participants from transcript
+- metadata-extractor - Extracts date, time, title, participants from transcript (prefers user-provided values)
 - transcript-cleaner - Cleans transcript while preserving 95%+ content
 - people-normalizer - Normalizes names against your People vault
 - meeting-notes-generator - Generates structured meeting notes

@@ -76,23 +76,24 @@ Critical action items:
 
 ### Step 4: Generate Agenda Overview
 
-**Length:** 50-100 words
+**Length:** 30-60 words
 
-Brief outline of what was covered:
+Brief bulleted list of topics covered (no counts):
 
 ```markdown
 ### Agenda Overview
 
-**Key Discussions:** 4 topics
 - SCADA technical standards review
 - Vendor proposal evaluation
 - Schedule and budget implications
 - Client communication strategy
-
-**Decisions Made:** 3
-**Action Items:** 6
-**Follow-up Items:** 2
 ```
+
+**Guidelines:**
+- List main topics only (3-6 items)
+- Use concise topic descriptions (3-8 words each)
+- NO counts for decisions, action items, or follow-up items
+- Focus on WHAT was discussed, not outcomes
 
 ### Step 5: Generate Key Discussions
 

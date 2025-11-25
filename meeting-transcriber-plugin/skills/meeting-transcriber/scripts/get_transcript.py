@@ -19,6 +19,8 @@ from config import ensure_configured
 
 class TranscriptHandler(BaseHTTPRequestHandler):
     transcript_data = None
+    meeting_date = None
+    meeting_time = None
     server_should_stop = False
 
     def log_message(self, format, *args):
@@ -26,36 +28,83 @@ class TranscriptHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Serve the input form."""
-        html = '''<!DOCTYPE html>
+        # Get today's date for default value
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        html = f'''<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>Meeting Transcriber</title>
     <style>
-        body {
+        body {{
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             max-width: 900px;
             margin: 40px auto;
             padding: 20px;
             background-color: #f5f5f7;
-        }
-        .container {
+        }}
+        .container {{
             background: white;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
+        }}
+        h1 {{
             color: #1d1d1f;
             margin-top: 0;
-        }
-        p {
+        }}
+        p {{
             color: #6e6e73;
             line-height: 1.5;
-        }
-        textarea {
+        }}
+        .metadata-section {{
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #f5f5f7;
+            border-radius: 8px;
+        }}
+        .metadata-section h3 {{
+            margin-top: 0;
+            color: #1d1d1f;
+            font-size: 16px;
+        }}
+        .metadata-fields {{
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }}
+        .field-group {{
+            flex: 1;
+        }}
+        .field-group label {{
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #6e6e73;
+            font-weight: 500;
+        }}
+        .field-group input {{
             width: 100%;
-            height: 400px;
+            padding: 10px;
+            font-size: 14px;
+            border: 2px solid #d2d2d7;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }}
+        .field-group input:focus {{
+            outline: none;
+            border-color: #0071e3;
+        }}
+        .help-text {{
+            margin-top: 8px;
+            font-size: 12px;
+            color: #86868b;
+            font-style: italic;
+        }}
+        textarea {{
+            width: 100%;
+            height: 350px;
             padding: 15px;
             font-family: Monaco, Menlo, monospace;
             font-size: 12px;
@@ -63,16 +112,16 @@ class TranscriptHandler(BaseHTTPRequestHandler):
             border-radius: 8px;
             resize: vertical;
             box-sizing: border-box;
-        }
-        textarea:focus {
+        }}
+        textarea:focus {{
             outline: none;
             border-color: #0071e3;
-        }
-        .buttons {
+        }}
+        .buttons {{
             margin-top: 20px;
             text-align: right;
-        }
-        button {
+        }}
+        button {{
             padding: 12px 24px;
             font-size: 14px;
             border: none;
@@ -80,29 +129,47 @@ class TranscriptHandler(BaseHTTPRequestHandler):
             cursor: pointer;
             margin-left: 10px;
             font-weight: 500;
-        }
-        #cancel {
+        }}
+        #cancel {{
             background-color: #e5e5ea;
             color: #1d1d1f;
-        }
-        #cancel:hover {
+        }}
+        #cancel:hover {{
             background-color: #d1d1d6;
-        }
-        #continue {
+        }}
+        #continue {{
             background-color: #0071e3;
             color: white;
-        }
-        #continue:hover {
+        }}
+        #continue:hover {{
             background-color: #0077ed;
-        }
+        }}
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Meeting Transcriber</h1>
-        <p>Paste your meeting transcript below. You can edit the text as needed.</p>
+        <p>Enter meeting details and paste your transcript below.</p>
+
         <form id="transcriptForm" method="POST" action="/submit">
+            <div class="metadata-section">
+                <h3>Meeting Details</h3>
+                <div class="metadata-fields">
+                    <div class="field-group">
+                        <label for="meetingDate">Meeting Date</label>
+                        <input type="date" id="meetingDate" name="meetingDate" value="{today}">
+                        <div class="help-text">Optional - defaults to today if blank</div>
+                    </div>
+                    <div class="field-group">
+                        <label for="meetingTime">Meeting Time</label>
+                        <input type="time" id="meetingTime" name="meetingTime" value="09:00">
+                        <div class="help-text">Optional - defaults to 09:00 if blank</div>
+                    </div>
+                </div>
+            </div>
+
             <textarea id="transcript" name="transcript" placeholder="Paste your meeting transcript here..." autofocus></textarea>
+
             <div class="buttons">
                 <button type="button" id="cancel" onclick="handleCancel()">Cancel</button>
                 <button type="submit" id="continue">Continue</button>
@@ -110,35 +177,43 @@ class TranscriptHandler(BaseHTTPRequestHandler):
         </form>
     </div>
     <script>
-        document.getElementById('transcriptForm').addEventListener('submit', function(e) {
+        document.getElementById('transcriptForm').addEventListener('submit', function(e) {{
             e.preventDefault();
             const text = document.getElementById('transcript').value.trim();
-            if (!text) {
+            if (!text) {{
                 alert('Please paste your transcript before continuing.');
                 return;
-            }
+            }}
+
+            const date = document.getElementById('meetingDate').value || '';
+            const time = document.getElementById('meetingTime').value || '';
+
             // Submit form
-            fetch('/submit', {
+            fetch('/submit', {{
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({transcript: text})
-            }).then(() => {
+                headers: {{'Content-Type': 'application/json'}},
+                body: JSON.stringify({{
+                    transcript: text,
+                    date: date,
+                    time: time
+                }})
+            }}).then(() => {{
                 document.body.innerHTML = '<div class="container"><h1>Success!</h1><p>Transcript received. You can close this window.</p></div>';
-            });
-        });
-        function handleCancel() {
-            if (confirm('Are you sure you want to cancel?')) {
-                fetch('/cancel', {method: 'POST'}).then(() => {
+            }});
+        }});
+        function handleCancel() {{
+            if (confirm('Are you sure you want to cancel?')) {{
+                fetch('/cancel', {{method: 'POST'}}).then(() => {{
                     window.close();
-                });
-            }
-        }
+                }});
+            }}
+        }}
         // Handle Cmd+Enter
-        document.getElementById('transcript').addEventListener('keydown', function(e) {
-            if (e.metaKey && e.key === 'Enter') {
+        document.getElementById('transcript').addEventListener('keydown', function(e) {{
+            if (e.metaKey && e.key === 'Enter') {{
                 document.getElementById('transcriptForm').dispatchEvent(new Event('submit'));
-            }
-        });
+            }}
+        }});
     </script>
 </body>
 </html>'''
@@ -156,6 +231,8 @@ class TranscriptHandler(BaseHTTPRequestHandler):
             try:
                 data = json.loads(post_data.decode())
                 TranscriptHandler.transcript_data = data.get('transcript', '')
+                TranscriptHandler.meeting_date = data.get('date', '')
+                TranscriptHandler.meeting_time = data.get('time', '')
             except:
                 pass
 
@@ -169,6 +246,8 @@ class TranscriptHandler(BaseHTTPRequestHandler):
 
         elif self.path == '/cancel':
             TranscriptHandler.transcript_data = None
+            TranscriptHandler.meeting_date = None
+            TranscriptHandler.meeting_time = None
             TranscriptHandler.server_should_stop = True
 
             self.send_response(200)
@@ -178,7 +257,7 @@ class TranscriptHandler(BaseHTTPRequestHandler):
 
 
 def get_transcript_via_dialog():
-    """Show web form dialog to get transcript."""
+    """Show web form dialog to get transcript, date, and time."""
 
     # Start local web server
     port = 8765
@@ -195,7 +274,7 @@ def get_transcript_via_dialog():
     # Open browser
     url = f'http://127.0.0.1:{port}'
     print(f"\nOpening web form at {url}")
-    print("Paste your transcript, edit as needed, then click Continue...")
+    print("Enter meeting date/time and paste your transcript, then click Continue...")
 
     try:
         subprocess.run(['open', url], check=True)
@@ -206,6 +285,8 @@ def get_transcript_via_dialog():
     server_thread.join(timeout=600)  # 10 minute timeout
 
     transcript = TranscriptHandler.transcript_data
+    meeting_date = TranscriptHandler.meeting_date
+    meeting_time = TranscriptHandler.meeting_time
 
     if transcript is None:
         print("INFO: User canceled or timeout", file=sys.stderr)
@@ -215,7 +296,7 @@ def get_transcript_via_dialog():
         print("ERROR: No transcript provided", file=sys.stderr)
         sys.exit(1)
 
-    return transcript
+    return transcript, meeting_date, meeting_time
 
 
 def save_to_temp_file(transcript):
@@ -247,10 +328,15 @@ def main():
 
     print("Starting web form...")
 
-    transcript = get_transcript_via_dialog()
+    transcript, meeting_date, meeting_time = get_transcript_via_dialog()
 
     word_count = len(transcript.split())
     print(f"INFO: Received transcript with {word_count} words")
+
+    if meeting_date:
+        print(f"INFO: Meeting date provided: {meeting_date}")
+    if meeting_time:
+        print(f"INFO: Meeting time provided: {meeting_time}")
 
     raw_file, cleaned_file, timestamp = save_to_temp_file(transcript)
 
@@ -258,6 +344,8 @@ def main():
     print(f"RAW_FILE={raw_file}")
     print(f"CLEANED_FILE={cleaned_file}")
     print(f"TIMESTAMP={timestamp}")
+    print(f"MEETING_DATE={meeting_date if meeting_date else ''}")
+    print(f"MEETING_TIME={meeting_time if meeting_time else ''}")
 
     return 0
 

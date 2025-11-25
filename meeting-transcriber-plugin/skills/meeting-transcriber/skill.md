@@ -65,9 +65,13 @@ INFO: Cleaned file will be: /tmp/meeting-cleaned-1762945602.md
 TIMESTAMP: 1762945602
 RAW_FILE=/tmp/meeting-raw-1762945602.md
 CLEANED_FILE=/tmp/meeting-cleaned-1762945602.md
+MEETING_DATE=2025-11-12
+MEETING_TIME=14:30
 ```
 
-Store these file paths for use in subsequent phases.
+Store these file paths and meeting date/time for use in subsequent phases.
+
+**Note:** MEETING_DATE and MEETING_TIME may be empty strings if user did not provide them. This is normal - the metadata-extractor will attempt to extract from transcript.
 
 ### PHASE 1B: Chunk Transcript (for large transcripts)
 
@@ -103,7 +107,12 @@ Execute these agent launches:
 - Use Task tool with:
   - subagent_type: "general-purpose"
   - description: "Extract meeting metadata"
-  - prompt: "Use the metadata-extractor skill to extract metadata from transcript file: {RAW_FILE from Phase 1}. Return JSON with date, title, participants, client, project, region, tags."
+  - prompt: "Use the metadata-extractor skill to extract metadata from transcript file: {RAW_FILE from Phase 1}.
+
+User-provided meeting date: {MEETING_DATE from Phase 1} (use this if provided, otherwise extract from transcript)
+User-provided meeting time: {MEETING_TIME from Phase 1} (use this if provided, otherwise extract from transcript or default to 09:00)
+
+Return JSON with date, time, title, participants, client, project, region, tags. Prioritize user-provided date/time over transcript extraction."
 
 **Agents B1-BN: transcript-cleaner (one per chunk)**
 For EACH chunk file from Phase 1B, launch a transcript-cleaner agent:
@@ -148,11 +157,14 @@ Execute this action:
 
 From Agent A output, extract:
 - Meeting date
+- Meeting time
 - Meeting title
 - Participant names (raw, not normalized yet)
 - Client, project, region, tags
 
-If date is null, ask user: "What date was this meeting? (YYYY-MM-DD format)"
+**Fallback prompts (only if needed):**
+- If date is null, ask user: "What date was this meeting? (YYYY-MM-DD format)"
+- If time is null or missing, ask user: "What time was the meeting? (HH:mm in 24-hour format, or leave blank for 09:00)"
 
 Store metadata for Phase 3.
 
@@ -182,6 +194,7 @@ Use Task tool:
 
 Metadata:
 - Date: {date from Step 2B}
+- Time: {time from Step 2B}
 - Title: {title from Step 2B}
 - Normalized participants: {wiki-linked names from Step 2D}
 
