@@ -138,17 +138,38 @@ For EACH chunk file from Phase 1B, launch a transcript-cleaner agent:
 - Use Task tool with:
   - subagent_type: "general-purpose"
   - description: "Clean transcript chunk {N}"
-  - prompt: (SEE SIMPLIFIED PROMPT BELOW)
+  - prompt: (SEE DIRECT INSTRUCTIONS BELOW)
 
-**SIMPLIFIED TRANSCRIPT-CLEANER PROMPT** (use this exact format):
+**DIRECT TRANSCRIPT-CLEANER INSTRUCTIONS** (use this exact format):
 ```
-Clean this transcript chunk. You MUST:
-1. Use Read tool to read: {CHUNK_FILE_N}
-2. Remove ONLY filler words (um, uh, like, you know). Do NOT rewrite or summarize.
-3. Use Write tool to save to: /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{NNN}.md
-4. Output the verification block.
+Clean this transcript chunk. Follow these steps exactly:
 
-If you don't use Read and Write tools, you have FAILED.
+STEP 1: Use Read tool to read the input file:
+- file_path: {CHUNK_FILE_N}
+
+STEP 2: Clean the transcript by removing ONLY filler words:
+- Remove: "um", "uh", "like" (when filler), "you know", "sort of", "kind of"
+- Fix spelling/grammar errors
+- Add punctuation where missing
+- Keep speaker labels consistent
+- DO NOT rewrite sentences or summarize
+- Preserve 95-100% of original word count
+
+STEP 3: Use Write tool to save the cleaned transcript:
+- file_path: /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{NNN}.md
+- content: [your cleaned transcript]
+
+STEP 4: Count words and output verification block:
+=== TRANSCRIPT-CLEANER VERIFICATION ===
+OUTPUT_FILE_WRITTEN: YES
+OUTPUT_FILE_PATH: /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{NNN}.md
+INPUT_WORD_COUNT: [original word count]
+OUTPUT_WORD_COUNT: [cleaned word count]
+REDUCTION_PERCENT: [percentage]%
+STATUS: SUCCESS
+=== END VERIFICATION ===
+
+CRITICAL: You MUST use Read and Write tools. If you just describe what you would do, you have FAILED.
 ```
 
 **IMPORTANT:** Launch metadata-extractor AND all transcript-cleaner agents in the SAME response (parallel processing).
@@ -209,20 +230,21 @@ ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | wc -l
 
 ## 🚫 DO NOT READ CHUNK FILES INTO CONTEXT 🚫
 
-**Use the reassemble script - DO NOT use Read tool on chunk files:**
+**Use cat command to reassemble (simplest and most reliable):**
+```bash
+cat $(ls -v /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V) > {CLEANED_FILE}
+```
 
+**Alternative: Use the reassemble script with --from-files flag:**
 ```bash
 python3 {SCRIPTS_DIR}/reassemble_chunks.py \
   "{CLEANED_FILE}" \
   "{TIMESTAMP}" \
   --from-files \
-  $(ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V | tr '\n' ' ')
+  $(ls -v /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V)
 ```
 
-**Or use cat (simpler):**
-```bash
-cat $(ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V) > {CLEANED_FILE}
-```
+**CRITICAL: The --from-files flag is REQUIRED when using file paths.**
 
 **WHY?**
 - Reading 18 files wastes ~20,000 tokens
