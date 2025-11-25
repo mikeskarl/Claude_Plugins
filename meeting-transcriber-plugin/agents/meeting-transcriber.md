@@ -181,24 +181,37 @@ Wait for all agents to complete before proceeding.
 
 #### Step 2A-2: Reassemble Cleaned Chunks
 
-Execute this action:
+**⚠️ DO NOT read the chunk files into context! Use the Python script or cat command.**
 
-1. **Reassemble all cleaned chunks using cat:**
-   ```bash
-   cat /tmp/meeting-chunk-cleaned-{TIMESTAMP}-001.md \
-       /tmp/meeting-chunk-cleaned-{TIMESTAMP}-002.md \
-       ... \
-       > {CLEANED_FILE from Phase 1}
-   ```
-   List all chunk files in order (001, 002, 003, etc.)
+Execute this action using the Python reassemble script:
 
-2. **Verify reassembly:**
-   ```bash
-   wc -w {CLEANED_FILE}
-   ```
-   - Confirm CLEANED_FILE was created
-   - Note total word count from script output
-   - Should be close to original word count (within 5-10%)
+```bash
+python3 {SCRIPTS_DIR}/reassemble_chunks.py \
+  "{CLEANED_FILE from Phase 1}" \
+  "{TIMESTAMP}" \
+  --from-files \
+  /tmp/meeting-chunk-cleaned-{TIMESTAMP}-001.md \
+  /tmp/meeting-chunk-cleaned-{TIMESTAMP}-002.md \
+  /tmp/meeting-chunk-cleaned-{TIMESTAMP}-003.md \
+  ... (list all chunk files in order)
+```
+
+**Alternative (simpler):** Use a shell glob to reassemble:
+```bash
+cat /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V > {CLEANED_FILE from Phase 1}
+```
+
+**Why use scripts instead of reading files?**
+- Reading 18+ chunk files wastes tokens
+- Python script handles cleanup automatically
+- Shell commands are faster and more reliable
+
+**Verify reassembly:**
+```bash
+wc -w {CLEANED_FILE}
+```
+- Confirm CLEANED_FILE was created and has content
+- Should be close to original word count (within 5-10%)
 
 #### Step 2B: Process Metadata Results
 
