@@ -42,16 +42,16 @@ Configuration is stored in `~/.claude/skills/meeting-transcriber/user_config.jso
 
 ### Reconfigure Paths
 
-To change your configured paths, run:
+To change your configured paths, first find the scripts directory, then run:
 ```bash
-python3 ~/.claude/skills/meeting-transcriber/scripts/config.py --reconfigure
+python3 {SCRIPTS_DIR}/config.py --reconfigure
 ```
 
 ### Check Current Configuration
 
 To view your current settings:
 ```bash
-python3 ~/.claude/skills/meeting-transcriber/scripts/config.py --check
+python3 {SCRIPTS_DIR}/config.py --check
 ```
 
 ## What This Skill Does
@@ -69,11 +69,16 @@ python3 ~/.claude/skills/meeting-transcriber/scripts/config.py --check
 
 ### PHASE 1: Input Collection (Python)
 
-Execute this action:
+Execute these actions IN ORDER:
 
-1. **Run the input collection script**:
-   - Use Bash tool with command: `python3 ~/.claude/skills/meeting-transcriber/scripts/get_transcript.py`
-   - Script will show AppleScript dialog for user to paste transcript
+1. **First, locate the scripts directory** (as instructed in IMPORTANT section above):
+   - Use Bash tool: `find ~/.claude/plugins -name "get_transcript.py" -type f 2>/dev/null | head -1`
+   - Extract the directory path and store as SCRIPTS_DIR
+
+2. **Run the input collection script**:
+   - Use Bash tool with command: `python3 {SCRIPTS_DIR}/get_transcript.py`
+   - Replace {SCRIPTS_DIR} with the actual path you found in step 1
+   - Script will open a web form for you to paste transcript and enter date/time
    - Script saves transcript to temp file and prints paths
    - Capture the output to extract:
      - `RAW_FILE=/tmp/meeting-raw-{timestamp}.md`
@@ -96,7 +101,8 @@ Store these file paths for use in subsequent phases.
 Execute this action:
 
 1. **Run the chunking script**:
-   - Use Bash tool with command: `python3 ~/.claude/skills/meeting-transcriber/scripts/chunk_transcript.py "{RAW_FILE}" "{TIMESTAMP}"`
+   - Use Bash tool with command: `python3 {SCRIPTS_DIR}/chunk_transcript.py "{RAW_FILE}" "{TIMESTAMP}"`
+   - Use the same SCRIPTS_DIR from Phase 1
    - Script splits transcript into ~500 word chunks at logical boundaries
    - Script saves chunks to `/tmp/meeting-chunk-{timestamp}-{N}.md`
    - Capture the output to extract:
@@ -151,7 +157,7 @@ Execute this action:
 2. **Run reassembly script**:
    - Use Bash tool with command:
      ```
-     python3 ~/.claude/skills/meeting-transcriber/scripts/reassemble_chunks.py \
+     python3 {SCRIPTS_DIR}/reassemble_chunks.py \
        "{CLEANED_FILE from Phase 1}" \
        "{TIMESTAMP}" \
        "{cleaned_chunk_1_output}" \
@@ -225,7 +231,7 @@ Execute this action:
 2. **Run the assembly script**:
    - Use Bash tool with command:
      ```
-     python3 ~/.claude/skills/meeting-transcriber/scripts/assemble_obsidian.py \
+     python3 {SCRIPTS_DIR}/assemble_obsidian.py \
        "{RAW_FILE}" \
        "{CLEANED_FILE}" \
        "{metadata_text}" \
