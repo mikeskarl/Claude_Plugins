@@ -134,13 +134,21 @@ Execute these agent launches:
   - prompt: "Use the metadata-extractor skill to extract metadata from transcript file: {RAW_FILE from Phase 1}. Return JSON with date, title, participants, client, project, region, tags."
 
 **Agents B1-BN: transcript-cleaner (one per chunk)**
-For EACH chunk file from Phase 1B, launch a transcript-cleaner agent with this exact prompt:
 
-```
+For EACH chunk file from Phase 1B, you must launch a Task tool with these EXACT parameters:
+
+**TASK TOOL PARAMETERS:**
+- `subagent_type`: "general-purpose"
+- `description`: "Clean transcript chunk {N}" (replace {N} with actual number like 001, 002, etc.)
+- `prompt`: [COPY THE FULL TEXT BETWEEN THE MARKERS BELOW, replacing the placeholders]
+
+**===== START PROMPT TEXT (copy everything between these markers) =====**
+
 Clean this transcript chunk. Follow these steps exactly:
 
 STEP 1: Use Read tool to read the input file:
-- file_path: {CHUNK_FILE_N from Phase 1B}
+- file_path: {CHUNK_FILE_PATH}
+  (Example: /tmp/meeting-chunk-1764101485-001.md)
 
 STEP 2: Clean the transcript by removing ONLY filler words:
 - Remove: "um", "uh", "like" (when filler), "you know", "sort of", "kind of"
@@ -151,13 +159,14 @@ STEP 2: Clean the transcript by removing ONLY filler words:
 - Preserve 95-100% of original word count
 
 STEP 3: Use Write tool to save the cleaned transcript:
-- file_path: /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{NNN}.md
+- file_path: {OUTPUT_FILE_PATH}
+  (Example: /tmp/meeting-chunk-cleaned-1764101485-001.md)
 - content: [your cleaned transcript]
 
 STEP 4: Count words and output verification block:
 === TRANSCRIPT-CLEANER VERIFICATION ===
 OUTPUT_FILE_WRITTEN: YES
-OUTPUT_FILE_PATH: /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{NNN}.md
+OUTPUT_FILE_PATH: {OUTPUT_FILE_PATH}
 INPUT_WORD_COUNT: [original word count]
 OUTPUT_WORD_COUNT: [cleaned word count]
 REDUCTION_PERCENT: [percentage]%
@@ -165,17 +174,49 @@ STATUS: SUCCESS
 === END VERIFICATION ===
 
 CRITICAL: You MUST use Read and Write tools. If you just describe what you would do, you have FAILED.
+
+**===== END PROMPT TEXT =====**
+
+**PLACEHOLDER REPLACEMENT GUIDE:**
+Before using the prompt above, replace these placeholders:
+- `{CHUNK_FILE_PATH}`: The actual input chunk file path (e.g., /tmp/meeting-chunk-1764101485-001.md)
+- `{OUTPUT_FILE_PATH}`: The output path (e.g., /tmp/meeting-chunk-cleaned-1764101485-001.md)
+  Format: /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{NNN}.md where {NNN} is the chunk number with leading zeros
+
+**EXAMPLE TASK TOOL CALL FOR CHUNK 1:**
 ```
+Task tool with:
+  subagent_type: "general-purpose"
+  description: "Clean transcript chunk 001"
+  prompt: "Clean this transcript chunk. Follow these steps exactly:
 
-**Replace the placeholders in the prompt above:**
-- {CHUNK_FILE_N from Phase 1B}: The actual path from Phase 1B (e.g., /tmp/meeting-chunk-1764101485-001.md)
-- {TIMESTAMP}: The timestamp from Phase 1
-- {NNN}: The chunk number with leading zeros (e.g., 001, 002, 003)
+STEP 1: Use Read tool to read the input file:
+- file_path: /tmp/meeting-chunk-1764101485-001.md
 
-**Use Task tool for each chunk with:**
-- subagent_type: "general-purpose"
-- description: "Clean transcript chunk {N}"
-- prompt: [the full prompt text above with placeholders replaced]
+STEP 2: Clean the transcript by removing ONLY filler words:
+- Remove: \"um\", \"uh\", \"like\" (when filler), \"you know\", \"sort of\", \"kind of\"
+- Fix spelling/grammar errors
+- Add punctuation where missing
+- Keep speaker labels consistent
+- DO NOT rewrite sentences or summarize
+- Preserve 95-100% of original word count
+
+STEP 3: Use Write tool to save the cleaned transcript:
+- file_path: /tmp/meeting-chunk-cleaned-1764101485-001.md
+- content: [your cleaned transcript]
+
+STEP 4: Count words and output verification block:
+=== TRANSCRIPT-CLEANER VERIFICATION ===
+OUTPUT_FILE_WRITTEN: YES
+OUTPUT_FILE_PATH: /tmp/meeting-chunk-cleaned-1764101485-001.md
+INPUT_WORD_COUNT: [original word count]
+OUTPUT_WORD_COUNT: [cleaned word count]
+REDUCTION_PERCENT: [percentage]%
+STATUS: SUCCESS
+=== END VERIFICATION ===
+
+CRITICAL: You MUST use Read and Write tools. If you just describe what you would do, you have FAILED."
+```
 
 **IMPORTANT:** Launch metadata-extractor AND all transcript-cleaner agents in the SAME response (parallel processing).
 
@@ -233,14 +274,50 @@ ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | wc -l
 
 #### Step 2A-2: Reassemble Cleaned Chunks
 
-## 🚫 DO NOT READ CHUNK FILES INTO CONTEXT 🚫
+## 🚫🚫🚫 DO NOT READ CHUNK FILES INTO CONTEXT 🚫🚫🚫
 
-**Use cat command to reassemble (simplest and most reliable):**
+**⚠️ CRITICAL WARNING ⚠️**
+
+**DO NOT use the Read tool to read cleaned chunk files.**
+
+**WHY THIS IS CRITICAL:**
+- Reading 18 chunk files wastes ~20,000 tokens
+- You will consume massive context for no benefit
+- The cat command or reassemble script does this in 0 tokens
+- You risk running out of context if you read files
+
+**If you use Read tool on chunk files, you are doing it wrong.**
+
+---
+
+## PRIMARY METHOD: Use cat command (RECOMMENDED)
+
+This is the simplest, most reliable method:
+
 ```bash
 cat $(ls -v /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V) > {CLEANED_FILE}
 ```
 
-**Alternative: Use the reassemble script with --from-files flag:**
+**Replace {TIMESTAMP} with actual timestamp (e.g., 1764102089)**
+**Replace {CLEANED_FILE} with actual cleaned file path from Phase 1**
+
+**Example:**
+```bash
+cat $(ls -v /tmp/meeting-chunk-cleaned-1764102089-*.md | sort -V) > /tmp/meeting-cleaned-1764102089.md
+```
+
+This command:
+- Lists all cleaned chunk files in order (001, 002, 003...)
+- Concatenates them in the correct sequence
+- Writes the result to the cleaned file
+- Uses zero context tokens
+
+---
+
+## ALTERNATIVE METHOD: Use reassemble script
+
+**Only use this if cat command fails:**
+
 ```bash
 python3 {SCRIPTS_DIR}/reassemble_chunks.py \
   "{CLEANED_FILE}" \
@@ -251,16 +328,30 @@ python3 {SCRIPTS_DIR}/reassemble_chunks.py \
 
 **CRITICAL: The --from-files flag is REQUIRED when using file paths.**
 
-**WHY?**
-- Reading 18 files wastes ~20,000 tokens
-- The script does it in 0 tokens
-- You will run out of context if you read files
+**Example:**
+```bash
+python3 /Users/mkarl/.claude/plugins/.../scripts/reassemble_chunks.py \
+  "/tmp/meeting-cleaned-1764102089.md" \
+  "1764102089" \
+  --from-files \
+  /tmp/meeting-chunk-cleaned-1764102089-*.md
+```
 
-**Verify the reassembly worked:**
+---
+
+## Verify Reassembly
+
+**After reassembly, verify it worked:**
 ```bash
 wc -w {CLEANED_FILE}
 ```
-Should show word count close to original (within 25% for cleaned transcript).
+
+Expected: Word count close to original (within 10-15% reduction for cleaned transcript).
+
+**If word count is 0 or suspiciously low:**
+- Check if cat command succeeded
+- Verify chunk files exist
+- Try the reassemble script as alternative
 
 #### Step 2B: Process Metadata Results
 

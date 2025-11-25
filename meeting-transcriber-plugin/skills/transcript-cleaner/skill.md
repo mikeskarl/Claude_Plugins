@@ -90,6 +90,40 @@ Calculate: `reduction = (original_count - cleaned_count) / original_count * 100`
 
 **If reduction > 10%, you removed too much. Add content back.**
 
+## ⚠️ STOP - IF REDUCTION EXCEEDS 10% ⚠️
+
+If your cleaned version is more than 10% shorter than the original:
+
+**YOU HAVE SUMMARIZED, NOT CLEANED. You must fix this before continuing.**
+
+**Required actions:**
+1. **GO BACK** and re-read the original transcript
+2. **IDENTIFY** what content you removed that wasn't just filler words
+3. **ADD BACK** all contextual phrases, connecting words, and substantive content
+4. **REMEMBER:** Only remove actual filler words:
+   - "um", "uh", "like" (when used as filler)
+   - "you know", "sort of", "kind of"
+   - "I mean", "basically", "actually" (when filler)
+5. **DO NOT** remove:
+   - Contextual phrases ("so", "well", "okay" when used meaningfully)
+   - Connecting words ("and", "but", "so" when connecting ideas)
+   - Repetitions that add emphasis
+   - Any words that carry meaning or context
+6. **RE-COUNT** and verify reduction is under 10%
+
+**If you cannot get reduction under 10%:**
+- The transcript may have very few filler words
+- In this case, just fix spelling/grammar/punctuation
+- Leave the content otherwise unchanged
+- A 0-5% reduction is BETTER than a 10% reduction
+
+**Example of what NOT to do:**
+- ❌ Original: "So the thing is, we really need to focus on getting this done"
+- ❌ Cleaned: "We need to get this done" (too much removed)
+- ✅ Cleaned: "So the thing is, we really need to focus on getting this done" (only fix grammar if needed)
+
+---
+
 ### Step 4: Write Output
 Use the Write tool to save to the output file path.
 

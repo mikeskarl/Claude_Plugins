@@ -9,6 +9,25 @@ description: Normalize participant names against the Obsidian People vault. Take
 
 This is a lightweight, focused utility that normalizes participant names against your Obsidian People vault. It performs fuzzy matching and returns properly formatted wiki-links.
 
+## ⛔ STOP - READ THIS FIRST ⛔
+
+**YOU WILL FAIL THIS TASK IF YOU DO NOT:**
+
+1. **USE THE GLOB TOOL** to scan the People directory for existing person files
+2. **ACTUALLY MATCH** input names against the files you found
+3. **OUTPUT THE VERIFICATION BLOCK** at the end
+
+**If you just format names as wiki-links without checking the People vault, YOU HAVE FAILED.**
+
+This skill requires you to:
+- Read the actual files in the Obsidian People vault
+- Compare input names against existing person files
+- Only mark names as "matched" if they actually exist in the vault
+
+**You CANNOT guess which names exist. You MUST use tools to check.**
+
+---
+
 ## ⚠️ MANDATORY SUCCESS VERIFICATION ⚠️
 
 **At the END of your processing, you MUST include this verification block:**
@@ -73,6 +92,8 @@ The names can be in any format:
 
 ### Step 2: Scan People Directory
 
+**REQUIRED ACTION: You MUST use the Glob tool in this step.**
+
 Determine the People directory path:
 1. If `people_path` parameter was provided, use that
 2. Otherwise, check if `~/.claude/skills/meeting-transcriber/user_config.json` exists:
@@ -80,9 +101,28 @@ Determine the People directory path:
    - Construct path: `{obsidian_vault}/{people_folder}`
 3. If no config exists, ask the user for the People directory path
 
-Use Glob tool to list all files in the People directory.
+**Use Glob tool to scan for person files:**
+```
+Glob tool with:
+  pattern: "*.md"
+  path: [People directory path from above]
+```
+
+**Example:**
+```
+Glob tool with:
+  pattern: "*.md"
+  path: "/Users/mkarl/Documents/ObsidianVault/Atlas/People"
+```
 
 Extract person names from filenames (remove .md extension).
+
+**If Glob tool returns 0 files:**
+- The path may be incorrect
+- Check the config file again
+- Ask user to verify the People directory path
+
+**Store the list of existing person files** - you will need this for Step 3 matching.
 
 ### Step 3: Match Each Name
 

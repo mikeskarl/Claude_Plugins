@@ -5,6 +5,53 @@ All notable changes to the Claude Plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2025-11-25
+
+### Important
+- **RESTART REQUIRED**: Claude Code must be restarted after updating to this version for changes to take effect
+
+### Fixed
+- **meeting-transcriber**: Significantly strengthened transcript-cleaner agent prompts
+  - Added START/END PROMPT markers to eliminate ambiguity about what text to copy
+  - Included complete example Task tool call showing exact format
+  - Made TASK TOOL PARAMETERS section explicit and prominent
+  - Should resolve remaining cases of agents not executing tools (chunks 7, 8, 10, 11, 13, 14, 17, 18 in previous run)
+
+- **transcript-cleaner**: Added strong word count guardrails
+  - New prominent warning section if reduction exceeds 10%
+  - Explicit instructions to add content back if over-reduced
+  - Clear examples of what NOT to do (removing contextual phrases)
+  - Guidance for transcripts with few filler words (0-5% reduction is better than 10%)
+  - Should prevent chunks from summarizing instead of cleaning (previous chunks 11, 14, 16 had 14-22% reduction)
+
+- **people-normalizer**: Made tool usage requirements explicit and mandatory
+  - Added "STOP - READ THIS FIRST" section at top of skill
+  - Explicitly states: "YOU WILL FAIL if you don't use Glob tool"
+  - Added example Glob tool call with exact syntax
+  - Clarified that agents cannot guess which names exist - must check vault
+  - Should prevent agents from just formatting names without checking People directory
+
+- **meeting-transcriber**: Enhanced reassembly instructions to prevent context waste
+  - Added triple warning emoji header: "DO NOT READ CHUNK FILES INTO CONTEXT"
+  - Made cat command the PRIMARY METHOD (emphasized as RECOMMENDED)
+  - Added explicit warning about token waste (20,000 tokens for 18 files)
+  - Included concrete examples with actual paths
+  - Demoted reassemble script to ALTERNATIVE METHOD section
+  - Should prevent agents from reading all chunk files before reassembly
+
+### Changed
+- **meeting-transcriber**: Restructured transcript-cleaner spawning instructions
+  - Clearer section hierarchy (TASK TOOL PARAMETERS, prompt markers, placeholder guide, example)
+  - More explicit placeholder replacement instructions
+  - Concrete example showing full Task tool call for chunk 1
+
+### Technical Details
+All four issues identified in v1.0.8 analysis have been addressed:
+1. Inconsistent tool execution → Strengthened prompt format with examples
+2. Word count preservation failures → Added guardrails and recovery instructions
+3. People normalizer not using vault → Made Glob tool usage mandatory with examples
+4. Inefficient context usage → Emphasized cat command, warned against Read tool
+
 ## [1.0.8] - 2025-11-25
 
 ### Important
