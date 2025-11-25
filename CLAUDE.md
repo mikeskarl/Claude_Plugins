@@ -147,6 +147,30 @@ Each plugin's `.claude-plugin/plugin.json`:
    /plugin marketplace update claude-plugins
    ```
 
+## Version Management
+
+**IMPORTANT:** When updating plugin versions, you must update BOTH version fields:
+
+1. **Plugin version** in marketplace.json `plugins[].version`
+2. **Marketplace metadata version** in marketplace.json `metadata.version`
+
+Claude Code appears to display the marketplace metadata version in the UI, so both must be kept in sync for version updates to be visible to users.
+
+Example: To release v1.0.1 of a plugin:
+```json
+{
+  "metadata": {
+    "version": "1.0.1"  // ← Update this
+  },
+  "plugins": [
+    {
+      "name": "meeting-transcriber",
+      "version": "1.0.1"  // ← And this
+    }
+  ]
+}
+```
+
 ## Common Issues
 
 ### "Marketplace file not found"
@@ -156,6 +180,12 @@ Each plugin's `.claude-plugin/plugin.json`:
 - `name`: Must be kebab-case (no spaces)
 - `owner`: Must be object `{ "name": "..." }`, not string
 - `source`: Must start with `./` for relative paths
+
+### Plugin version not updating
+- Update both `metadata.version` and `plugins[].version` in marketplace.json
+- Commit and push changes to GitHub
+- Run `/plugin marketplace update claude-plugins`
+- Uninstall and reinstall the plugin if needed
 
 ### Plugin not recognized after install
 - Ensure `agents` array in plugin.json points to valid .md files
