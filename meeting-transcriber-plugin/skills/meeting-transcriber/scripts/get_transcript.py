@@ -259,25 +259,9 @@ class TranscriptHandler(BaseHTTPRequestHandler):
 def get_transcript_via_dialog():
     """Show web form dialog to get transcript, date, and time."""
 
-    # Start local web server with port fallback
+    # Start local web server
     port = 8765
-    max_retries = 5
-    server = None
-
-    for attempt in range(max_retries):
-        try:
-            server = HTTPServer(('127.0.0.1', port), TranscriptHandler)
-            break
-        except OSError as e:
-            if e.errno == 48:  # Address already in use
-                print(f"INFO: Port {port} in use, trying {port + 1}", file=sys.stderr)
-                port += 1
-            else:
-                raise
-
-    if server is None:
-        print(f"ERROR: Could not find available port after {max_retries} attempts", file=sys.stderr)
-        sys.exit(1)
+    server = HTTPServer(('127.0.0.1', port), TranscriptHandler)
 
     # Run server in background thread
     def run_server():

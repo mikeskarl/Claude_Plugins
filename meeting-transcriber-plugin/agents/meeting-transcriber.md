@@ -9,20 +9,6 @@ description: Process meeting transcripts into Obsidian-formatted notes. Uses Pyt
 
 Hybrid script-orchestrated workflow that combines Python scripts (for reliable I/O) with Claude agents (for AI processing) to transform meeting transcripts into professional Obsidian notes.
 
-## CRITICAL: Before Starting
-
-**FIRST ACTION:** Locate the scripts directory using:
-```
-Use Glob tool with pattern: "**/meeting-transcriber**/scripts/get_transcript.py"
-```
-
-Extract the directory path and store as `SCRIPTS_DIR` for all subsequent commands. For example, if the glob returns:
-`/Users/mkarl/1Code/1Working/Claude_Plugins/meeting-transcriber-plugin/skills/meeting-transcriber/scripts/get_transcript.py`
-
-Then `SCRIPTS_DIR = /Users/mkarl/1Code/1Working/Claude_Plugins/meeting-transcriber-plugin/skills/meeting-transcriber/scripts`
-
-**Use this SCRIPTS_DIR path for ALL Python script commands throughout the workflow.**
-
 ## First-Time Setup
 
 On first use, the skill will automatically prompt you to configure:
@@ -36,14 +22,14 @@ Configuration is stored in `~/.claude/skills/meeting-transcriber/user_config.jso
 
 To change your configured paths, run:
 ```bash
-python3 {SCRIPTS_DIR}/config.py --reconfigure
+python3 ~/.claude/skills/meeting-transcriber/scripts/config.py --reconfigure
 ```
 
 ### Check Current Configuration
 
 To view your current settings:
 ```bash
-python3 {SCRIPTS_DIR}/config.py --check
+python3 ~/.claude/skills/meeting-transcriber/scripts/config.py --check
 ```
 
 ## What This Skill Does
@@ -64,8 +50,7 @@ python3 {SCRIPTS_DIR}/config.py --check
 Execute this action:
 
 1. **Run the input collection script**:
-   - Use Bash tool with command: `python3 {SCRIPTS_DIR}/get_transcript.py`
-   - Use the SCRIPTS_DIR you located in the CRITICAL section above
+   - Use Bash tool with command: `python3 ~/.claude/skills/meeting-transcriber/scripts/get_transcript.py`
    - Script will show AppleScript dialog for user to paste transcript
    - Script saves transcript to temp file and prints paths
    - Capture the output to extract:
@@ -89,7 +74,7 @@ Store these file paths for use in subsequent phases.
 Execute this action:
 
 1. **Run the chunking script**:
-   - Use Bash tool with command: `python3 {SCRIPTS_DIR}/chunk_transcript.py "{RAW_FILE}" "{TIMESTAMP}"`
+   - Use Bash tool with command: `python3 ~/.claude/skills/meeting-transcriber/scripts/chunk_transcript.py "{RAW_FILE}" "{TIMESTAMP}"`
    - Script splits transcript into ~500 word chunks at logical boundaries
    - Script saves chunks to `/tmp/meeting-chunk-{timestamp}-{N}.md`
    - Capture the output to extract:
@@ -144,7 +129,7 @@ Execute this action:
 2. **Run reassembly script**:
    - Use Bash tool with command:
      ```
-     python3 {SCRIPTS_DIR}/reassemble_chunks.py \
+     python3 ~/.claude/skills/meeting-transcriber/scripts/reassemble_chunks.py \
        "{CLEANED_FILE from Phase 1}" \
        "{TIMESTAMP}" \
        "{cleaned_chunk_1_output}" \
@@ -218,7 +203,7 @@ Execute this action:
 2. **Run the assembly script**:
    - Use Bash tool with command:
      ```
-     python3 {SCRIPTS_DIR}/assemble_obsidian.py \
+     python3 ~/.claude/skills/meeting-transcriber/scripts/assemble_obsidian.py \
        "{RAW_FILE}" \
        "{CLEANED_FILE}" \
        "{metadata_text}" \
