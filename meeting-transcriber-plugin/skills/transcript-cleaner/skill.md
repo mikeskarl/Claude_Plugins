@@ -11,6 +11,18 @@ Clean and improve transcript readability while preserving ALL substantive conten
 
 **CRITICAL RULE: Preserve 95-100% of original word count**
 
+## ⚠️ MANDATORY OUTPUT FILE REQUIREMENT ⚠️
+
+**YOU MUST ALWAYS CREATE THE OUTPUT FILE - NO EXCEPTIONS**
+
+Even if:
+- The transcript is already clean (still write it to output)
+- Reduction exceeds 15% (write it anyway with a warning)
+- An error occurs (write original content to output)
+- Input cannot be read (write error message to output file)
+
+**The coordinator skill REQUIRES this file to exist. If you don't create it, the entire workflow fails.**
+
 ## Input Expected
 
 The user will provide:
