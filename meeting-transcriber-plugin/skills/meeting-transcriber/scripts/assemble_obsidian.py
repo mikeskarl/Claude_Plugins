@@ -272,9 +272,20 @@ def main():
     notes_input = sys.argv[5]
 
     # If inputs look like file paths, read them
-    metadata_text = read_file(metadata_input) if Path(metadata_input).exists() else metadata_input
-    people_text = read_file(people_input) if Path(people_input).exists() else people_input
-    notes_text = read_file(notes_input) if Path(notes_input).exists() else notes_input
+    try:
+        metadata_text = read_file(metadata_input) if Path(metadata_input).exists() else metadata_input
+    except (OSError, ValueError):
+        metadata_text = metadata_input
+
+    try:
+        people_text = read_file(people_input) if Path(people_input).exists() else people_input
+    except (OSError, ValueError):
+        people_text = people_input
+
+    try:
+        notes_text = read_file(notes_input) if Path(notes_input).exists() else notes_input
+    except (OSError, ValueError):
+        notes_text = notes_input
 
     if not all([metadata_text, people_text, notes_text]):
         print("ERROR: Failed to read agent outputs", file=sys.stderr)
