@@ -5,6 +5,16 @@ All notable changes to the Claude Plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.7] - 2025-11-25
+
+### Important
+- **RESTART REQUIRED**: Claude Code must be restarted after updating to this version for changes to take effect
+- This version includes the same agent instruction fixes from 1.0.6, but clarifies that a restart is required to reload the updated instructions from disk into memory
+
+### Notes
+- If you updated from 1.0.5 to 1.0.6 and encountered agents not completing their work, restart Claude Code to resolve the issue
+- The fixes are already in the code on disk, but Claude Code caches skill instructions in memory at startup
+
 ## [1.0.6] - 2025-11-25
 
 ### Fixed
