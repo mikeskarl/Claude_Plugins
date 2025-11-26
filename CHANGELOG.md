@@ -5,6 +5,22 @@ All notable changes to the Claude Plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.13] - 2025-11-26
+
+### Important
+- **RESTART REQUIRED**: Claude Code must be restarted after updating to this version for changes to take effect
+
+### Fixed
+- **meeting-transcriber**: Restructured Step 2A-2 reassembly instructions to prevent token waste
+  - Root cause: Agent read all 18 chunk files (20k+ tokens) instead of using cat command
+  - Solution: Lead with explicit bash command, numbered steps, prohibition at top
+  - Pattern: Apply same ultra-explicit structure that worked for transcript-cleaner
+  - Result: Reassembly now uses 0 additional tokens instead of 20k tokens
+  - Prevents context overflow on large transcripts
+
+### Technical Details
+Despite clear warnings not to use Read tool, the orchestrating agent pattern-matched on "reassemble chunks" and read all files into context. The v1.0.13 restructure mirrors the successful transcript-cleaner pattern: prohibition first, command first, explanation second, with explicit failure conditions.
+
 ## [1.0.12] - 2025-11-26
 
 ### Important

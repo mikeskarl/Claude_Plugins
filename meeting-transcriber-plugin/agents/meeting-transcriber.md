@@ -294,51 +294,74 @@ ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | wc -l
 
 ---
 
-#### Step 2A-2: Reassemble Cleaned Chunks
+#### Step 2A-2: Reassemble Cleaned Chunks with Cat Command
 
-## 🚫🚫🚫 DO NOT READ CHUNK FILES INTO CONTEXT 🚫🚫🚫
+⛔ **CRITICAL: DO NOT USE READ TOOL** ⛔
 
-**⚠️ CRITICAL WARNING ⚠️**
-
-**DO NOT use the Read tool to read cleaned chunk files.**
-
-**WHY THIS IS CRITICAL:**
-- Reading 18 chunk files wastes ~20,000 tokens
-- You will consume massive context for no benefit
-- The cat command or reassemble script does this in 0 tokens
-- You risk running out of context if you read files
-
-**If you use Read tool on chunk files, you are doing it wrong.**
+**Execute the bash command below. DO NOT read chunk files into context.**
 
 ---
 
-## PRIMARY METHOD: Use cat command (RECOMMENDED)
+## STEP 1: Run Cat Command to Reassemble Chunks
 
-This is the simplest, most reliable method:
+Use the Bash tool with this EXACT command:
 
 ```bash
 cat $(ls -v /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V) > {CLEANED_FILE}
 ```
 
-**Replace {TIMESTAMP} with actual timestamp (e.g., 1764102089)**
-**Replace {CLEANED_FILE} with actual cleaned file path from Phase 1**
+**Replace placeholders:**
+- `{TIMESTAMP}`: The timestamp from Phase 1 (e.g., 1764157804)
+- `{CLEANED_FILE}`: The cleaned file path from Phase 1 (e.g., /tmp/meeting-cleaned-1764157804.md)
 
 **Example:**
 ```bash
-cat $(ls -v /tmp/meeting-chunk-cleaned-1764102089-*.md | sort -V) > /tmp/meeting-cleaned-1764102089.md
+cat $(ls -v /tmp/meeting-chunk-cleaned-1764157804-*.md | sort -V) > /tmp/meeting-cleaned-1764157804.md
 ```
 
-This command:
-- Lists all cleaned chunk files in order (001, 002, 003...)
-- Concatenates them in the correct sequence
-- Writes the result to the cleaned file
-- Uses zero context tokens
+**Why cat command:**
+- Lists all cleaned chunk files in numerical order (001, 002, 003...)
+- Concatenates them in sequence
+- Writes result to cleaned file
+- Uses ZERO context tokens (vs 20,000 tokens if you use Read tool)
 
 ---
 
-## ALTERNATIVE METHOD: Use reassemble script
+## STEP 2: Verify Reassembly Success
 
-**Only use this if cat command fails:**
+After running the cat command, verify it worked:
+
+```bash
+wc -w {CLEANED_FILE}
+```
+
+Expected: Word count close to original (within 10-15% reduction for cleaned transcript).
+
+**If word count is 0 or suspiciously low:**
+- Check if cat command succeeded (look for errors in output)
+- Verify chunk files exist: `ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md`
+- Count actual files: `ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | wc -l`
+- Should equal CHUNK_COUNT from Phase 1B
+
+---
+
+## 🚫 FORBIDDEN: DO NOT READ CHUNK FILES 🚫
+
+**If you used the Read tool to read cleaned chunk files, YOU HAVE FAILED.**
+
+**Why this is critical:**
+- Reading 18 chunk files wastes ~20,000 tokens
+- You consume massive context for zero benefit
+- The cat command does this in 0 tokens
+- You risk running out of context on large transcripts
+
+**The cat command is the ONLY correct approach for reassembly.**
+
+---
+
+## Alternative Method (ONLY if cat command fails)
+
+**Only use this if the cat command returned an error:**
 
 ```bash
 python3 {SCRIPTS_DIR}/reassemble_chunks.py \
@@ -348,32 +371,16 @@ python3 {SCRIPTS_DIR}/reassemble_chunks.py \
   $(ls -v /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V)
 ```
 
-**CRITICAL: The --from-files flag is REQUIRED when using file paths.**
+**CRITICAL: The --from-files flag is REQUIRED.**
 
-**Example:**
+Example:
 ```bash
 python3 /Users/mkarl/.claude/plugins/.../scripts/reassemble_chunks.py \
-  "/tmp/meeting-cleaned-1764102089.md" \
-  "1764102089" \
+  "/tmp/meeting-cleaned-1764157804.md" \
+  "1764157804" \
   --from-files \
-  /tmp/meeting-chunk-cleaned-1764102089-*.md
+  /tmp/meeting-chunk-cleaned-1764157804-*.md
 ```
-
----
-
-## Verify Reassembly
-
-**After reassembly, verify it worked:**
-```bash
-wc -w {CLEANED_FILE}
-```
-
-Expected: Word count close to original (within 10-15% reduction for cleaned transcript).
-
-**If word count is 0 or suspiciously low:**
-- Check if cat command succeeded
-- Verify chunk files exist
-- Try the reassemble script as alternative
 
 #### Step 2B: Process Metadata Results
 
