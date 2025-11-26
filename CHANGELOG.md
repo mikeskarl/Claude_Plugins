@@ -5,6 +5,22 @@ All notable changes to the Claude Plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.11] - 2025-11-26
+
+### Important
+- **RESTART REQUIRED**: Claude Code must be restarted after updating to this version for changes to take effect
+
+### Fixed
+- **meeting-transcriber**: Applied same fix to people-normalizer (Step 2D) and meeting-notes-generator (Step 2E)
+  - Removed "Use the X skill" pattern from agent spawning prompts
+  - Replaced with direct, step-by-step instructions
+  - Added prohibition headers: "DO NOT create prompts like 'Use the X skill'"
+  - Ensures consistency across all agent launches (transcript-cleaner, people-normalizer, meeting-notes-generator)
+  - While people-normalizer was working in v1.0.10, this change eliminates the confusing "use skill" pattern entirely
+
+### Technical Details
+v1.0.10 fixed transcript-cleaner but Steps 2D and 2E still used "Use the X skill" prompts. v1.0.11 completes the refactor by providing direct instructions for all agent types, eliminating any ambiguity about whether agents should invoke skills vs use tools directly.
+
 ## [1.0.10] - 2025-11-25
 
 ### Important

@@ -395,10 +395,41 @@ CLEANED_FILE now contains the complete cleaned transcript and is ready for use i
 
 #### Step 2D: Launch People Normalizer
 
-Use Task tool:
+⛔ **DO NOT create prompts like "Use the people-normalizer skill"** ⛔
+
+Use Task tool with direct instructions:
 - subagent_type: "general-purpose"
 - description: "Normalize participant names"
-- prompt: "Use the people-normalizer skill to normalize these participant names: {comma-separated list of participants from Step 2B}. Return the wiki-link formatted list for YAML and note which are new vs matched."
+- prompt: "Normalize these participant names against the Obsidian People vault: {comma-separated list of participants from Step 2B}
+
+Follow these steps:
+
+STEP 1: Find the People directory path
+- Look for config file: find ~/.claude/plugins -name user_config.json -path '*meeting-transcriber*' 2>/dev/null | head -1
+- Read the config to get obsidian_vault and people_folder values
+- Construct path: {obsidian_vault}/{people_folder}
+
+STEP 2: Scan People directory with Glob tool
+- Use Glob tool with pattern: \"*.md\" and path: [People directory from Step 1]
+- Extract person names from filenames (remove .md extension)
+
+STEP 3: Match each input name to existing person files
+- Use fuzzy matching: exact match, first name match, last name match, nickname matching
+- Common nicknames: Mike/Michael, Bob/Robert, Jim/James, etc.
+- If no match found: apply Title Case and mark as \"new\"
+
+STEP 4: Output verification block:
+=== PEOPLE-NORMALIZER VERIFICATION ===
+NAMES_PROCESSED: [count]
+NAMES_MATCHED: [count]
+NAMES_NEW: [count]
+STATUS: SUCCESS
+WIKI_LINK_LIST:
+  - [[Name 1]]
+  - [[Name 2]]
+=== END VERIFICATION ===
+
+CRITICAL: You MUST use Glob tool to check the People vault. Don't guess which names exist."
 
 Wait for agent to complete.
 
@@ -418,17 +449,64 @@ Store normalized participant names (with wiki-links) for Phase 3.
 
 #### Step 2E: Launch Meeting Notes Generator
 
-Use Task tool:
+⛔ **DO NOT create prompts like "Use the meeting-notes-generator skill"** ⛔
+
+Use Task tool with direct instructions:
 - subagent_type: "general-purpose"
 - description: "Generate meeting notes"
-- prompt: "Use the meeting-notes-generator skill to generate structured meeting notes from cleaned transcript file: {CLEANED_FILE from Phase 1}.
+- prompt: "Generate structured meeting notes from the cleaned transcript.
 
-Metadata:
+Input Information:
+- Cleaned transcript file: {CLEANED_FILE from Phase 1}
 - Date: {date from Step 2B}
 - Title: {title from Step 2B}
-- Normalized participants: {wiki-linked names from Step 2D}
+- Participants: {wiki-linked names from Step 2D}
 
-Generate: Executive summary, agenda overview, key discussions, decisions, action items, follow-up items. Target 800-1200 words total. Return the complete Meeting Notes section in markdown format."
+Follow these steps:
+
+STEP 1: Read the cleaned transcript file with Read tool
+
+STEP 2: Determine target length based on word count
+- Short meeting (<2,000 words): 400-600 words
+- Standard meeting (2,000-5,000 words): 800-1200 words
+- Long meeting (>5,000 words): 1200-2000 words
+
+STEP 3: Generate structured notes with these sections:
+
+### Executive Summary (100-150 words)
+- Meeting purpose (why this meeting happened)
+- Key outcomes (what was accomplished)
+- Critical action items (most urgent next steps)
+
+### Agenda Overview (30-60 words)
+- Brief list of topics discussed
+
+### Key Discussions (400-800 words)
+- Organized by topic
+- Focus on substance, not who said what
+- Include context and reasoning
+- Use bullet points for clarity
+
+### Decisions Made (100-200 words)
+- List each decision clearly
+- Include rationale if significant
+- Note any conditions or caveats
+
+### Action Items (100-200 words)
+- Format: Owner, task, deadline (if mentioned)
+- Prioritize by urgency
+- Be specific about deliverables
+
+### Follow-up Items (50-100 words)
+- Questions to be answered
+- Topics for future discussion
+- Dependencies or blockers
+
+STEP 4: Return the complete Meeting Notes in markdown format
+
+Target total length: 800-1200 words (for standard meeting)
+
+Focus on decisions and outcomes, not process. Write for someone who didn't attend."
 
 Wait for agent to complete.
 
