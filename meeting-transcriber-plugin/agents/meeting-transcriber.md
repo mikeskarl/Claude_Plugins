@@ -135,20 +135,27 @@ Execute these agent launches:
 
 **Agents B1-BN: Launch Cleaning Agents for Each Chunk**
 
-⛔ **CRITICAL: DO NOT CREATE SHORT PROMPTS** ⛔
+⛔⛔⛔ **CRITICAL: READ THIS BEFORE CREATING ANY TASK TOOL CALLS** ⛔⛔⛔
 
-**YOU MUST NOT write prompts like:**
+**🚫 FAILURE PATTERNS - DO NOT DO THIS:**
 - "Use the transcript-cleaner skill to clean this transcript..."
 - "Please clean the transcript using the skill..."
 - "Apply the cleaning skill to this file..."
+- "Clean transcript file {path} using the skill..."
 
-**If your Task tool prompt contains phrases like "use the skill" or "apply the skill", YOU HAVE FAILED.**
+**✅ REQUIRED: You MUST copy the FULL prompt text from below**
 
-**Instead, you MUST copy the complete prompt text provided below.**
+**If ANY of your Task tool prompts contain phrases like "use the skill", "apply the skill", or "using the skill", YOU HAVE COMPLETELY FAILED.**
+
+**Every single Task tool call must have the FULL multi-line prompt with STEP 1, STEP 2, STEP 3, STEP 4.**
 
 ---
 
 For EACH chunk file from Phase 1B, you must launch a Task tool with these EXACT parameters:
+
+🚫 **DO NOT CREATE SHORT PROMPTS FOR ANY CHUNKS** 🚫
+
+**ALL 18 chunks (or however many) must get the FULL prompt below.**
 
 **TASK TOOL PARAMETERS:**
 - `subagent_type`: "general-purpose"
@@ -240,147 +247,128 @@ CRITICAL: You MUST use Read and Write tools. If you just describe what you would
 
 ---
 
+⛔ **REMINDER: USE THE FULL PROMPT ABOVE FOR EVERY CHUNK** ⛔
+
+**If you created ANY Task tool calls with short prompts like "Use the skill", you must DELETE them and recreate with the full prompt text above.**
+
+**Check your Task tool calls before submitting:**
+- Does EVERY chunk get the full multi-line prompt?
+- Does EVERY prompt include STEP 1, STEP 2, STEP 3, STEP 4?
+- Does ANY prompt say "use the skill" or "using the skill"?
+
+**If the answer to the third question is YES, DELETE those calls and fix them NOW.**
+
+---
+
 **IMPORTANT:** Launch metadata-extractor AND all cleaning agents in the SAME response (parallel processing).
 
 If there are many chunks (>10), launch in batches of 10 agents at a time.
 
-Wait for all agents to complete before proceeding.
-
 ---
 
-## ⛔ STOP - CHECKPOINT 1 ⛔
+## ⛔⛔⛔ AFTER AGENTS COMPLETE: FOLLOW THESE STEPS IMMEDIATELY ⛔⛔⛔
 
-### Step 2A-VERIFY: YOU MUST DO THIS BEFORE CONTINUING
+**Your NEXT ACTIONS after agents complete:**
 
-**DO NOT SKIP THIS STEP. Run these commands NOW:**
+### ACTION 1: Verify File Count (DO THIS FIRST)
+
+🚫 **DO NOT read chunk files. DO NOT try to reassemble yet.** 🚫
+
+**Run this verification command RIGHT NOW:**
 
 ```bash
-# Count how many cleaned files exist
 ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md 2>/dev/null | wc -l
 ```
 
-**GATE CHECK:**
-- Expected files: {CHUNK_COUNT}
-- Actual files: [result of ls command]
-- If actual < expected: SOME AGENTS FAILED
+**Check the result:**
+- Expected: {CHUNK_COUNT} files
+- If you got fewer files: SOME AGENTS FAILED
 
 **Also check agent summaries:**
-- Any agent with "0 tool uses" = FAILED (did not use Read/Write)
+- Any agent with "0 tool uses" = FAILED (did not use Read/Write tools)
 
-### If files are missing:
+### ACTION 2: If Files Are Missing - Fix It Before Proceeding
 
-**Step A: Identify which chunks failed**
+**2a. Identify which chunks failed:**
 ```bash
-# List what exists
 ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md
 ```
-Compare to expected: 001.md, 002.md, ... {CHUNK_COUNT}.md
+Compare to expected: 001, 002, 003... up to {CHUNK_COUNT}
 
-**Step B: Retry failed chunks ONCE**
-Re-launch transcript-cleaner for ONLY the missing chunk numbers.
-
-**Step C: If retry still fails, use FALLBACK (copy original)**
+**2b. For EACH missing chunk number, create fallback file:**
 ```bash
 cp /tmp/meeting-chunk-{TIMESTAMP}-{N}.md /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{N}.md
 ```
-Do this for each still-missing file.
 
-**Step D: Final count MUST equal CHUNK_COUNT**
+Example if chunk 7 is missing:
+```bash
+cp /tmp/meeting-chunk-1764157804-007.md /tmp/meeting-chunk-cleaned-1764157804-007.md
+```
+
+Repeat for each missing chunk.
+
+**2c. Verify all files now exist:**
 ```bash
 ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | wc -l
 ```
 
-**⛔ DO NOT PROCEED until file count equals CHUNK_COUNT ⛔**
+Must equal {CHUNK_COUNT}. **DO NOT PROCEED until this is true.**
 
----
+### ACTION 3: Reassemble Using Cat Command
 
-#### Step 2A-2: Reassemble Cleaned Chunks with Cat Command
+🚫 **DO NOT USE READ TOOL ON CHUNK FILES** 🚫
 
-⛔ **CRITICAL: DO NOT USE READ TOOL** ⛔
-
-**Execute the bash command below. DO NOT read chunk files into context.**
-
----
-
-## STEP 1: Run Cat Command to Reassemble Chunks
-
-Use the Bash tool with this EXACT command:
+**Run this EXACT bash command to reassemble:**
 
 ```bash
 cat $(ls -v /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V) > {CLEANED_FILE}
 ```
 
 **Replace placeholders:**
-- `{TIMESTAMP}`: The timestamp from Phase 1 (e.g., 1764157804)
-- `{CLEANED_FILE}`: The cleaned file path from Phase 1 (e.g., /tmp/meeting-cleaned-1764157804.md)
+- `{TIMESTAMP}`: From Phase 1 (e.g., 1764157804)
+- `{CLEANED_FILE}`: From Phase 1 (e.g., /tmp/meeting-cleaned-1764157804.md)
 
 **Example:**
 ```bash
 cat $(ls -v /tmp/meeting-chunk-cleaned-1764157804-*.md | sort -V) > /tmp/meeting-cleaned-1764157804.md
 ```
 
-**Why cat command:**
-- Lists all cleaned chunk files in numerical order (001, 002, 003...)
-- Concatenates them in sequence
-- Writes result to cleaned file
-- Uses ZERO context tokens (vs 20,000 tokens if you use Read tool)
+**Why cat command (NOT Read tool):**
+- Uses ZERO context tokens
+- Read tool on 18 files = 20,000+ wasted tokens
+- You will run out of context on large transcripts
 
----
-
-## STEP 2: Verify Reassembly Success
-
-After running the cat command, verify it worked:
+### ACTION 4: Verify Reassembly Worked
 
 ```bash
 wc -w {CLEANED_FILE}
 ```
 
-Expected: Word count close to original (within 10-15% reduction for cleaned transcript).
+Expected: Close to original word count (5-10% reduction is normal).
 
 **If word count is 0 or suspiciously low:**
-- Check if cat command succeeded (look for errors in output)
+- Cat command may have failed
+- Check for errors in bash output above
 - Verify chunk files exist: `ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md`
-- Count actual files: `ls /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | wc -l`
-- Should equal CHUNK_COUNT from Phase 1B
 
 ---
 
-## 🚫 FORBIDDEN: DO NOT READ CHUNK FILES 🚫
+## 🚫 CRITICAL FAILURE CONDITIONS 🚫
 
-**If you used the Read tool to read cleaned chunk files, YOU HAVE FAILED.**
+**YOU HAVE FAILED if you:**
+- Used Read tool to read cleaned chunk files
+- Tried to reassemble without verifying file count first
+- Proceeded with missing chunk files
+- Skipped the cat command
 
-**Why this is critical:**
-- Reading 18 chunk files wastes ~20,000 tokens
-- You consume massive context for zero benefit
-- The cat command does this in 0 tokens
-- You risk running out of context on large transcripts
-
-**The cat command is the ONLY correct approach for reassembly.**
+**The ONLY correct sequence:**
+1. Agents complete
+2. Verify file count with ls
+3. Copy missing chunks as fallback
+4. Run cat command to reassemble
+5. Verify word count
 
 ---
-
-## Alternative Method (ONLY if cat command fails)
-
-**Only use this if the cat command returned an error:**
-
-```bash
-python3 {SCRIPTS_DIR}/reassemble_chunks.py \
-  "{CLEANED_FILE}" \
-  "{TIMESTAMP}" \
-  --from-files \
-  $(ls -v /tmp/meeting-chunk-cleaned-{TIMESTAMP}-*.md | sort -V)
-```
-
-**CRITICAL: The --from-files flag is REQUIRED.**
-
-Example:
-```bash
-python3 /Users/mkarl/.claude/plugins/.../scripts/reassemble_chunks.py \
-  "/tmp/meeting-cleaned-1764157804.md" \
-  "1764157804" \
-  --from-files \
-  /tmp/meeting-chunk-cleaned-1764157804-*.md
-```
 
 #### Step 2B: Process Metadata Results
 

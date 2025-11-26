@@ -5,6 +5,36 @@ All notable changes to the Claude Plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.14] - 2025-11-26
+
+### Important
+- **RESTART REQUIRED**: Claude Code must be restarted after updating to this version for changes to take effect
+
+### Fixed
+- **meeting-transcriber**: Completely restructured post-agent workflow to prevent orchestrating agent from skipping critical steps
+  - Root cause: Orchestrating agent skipped CHECKPOINT 1 verification and Step 2A-2 reassembly instructions entirely
+  - Agent pattern-matched on "need to reassemble" after agents completed, ignoring all explicit instructions
+  - Solution: Consolidated verification and reassembly into immediate post-agent ACTION steps with triple emoji warnings
+  - New structure: "AFTER AGENTS COMPLETE: FOLLOW THESE STEPS IMMEDIATELY" with ACTION 1, 2, 3, 4
+  - Added explicit failure conditions: "YOU HAVE FAILED if you used Read tool on chunk files"
+  - Automatic fallback: Copy original chunks for any missing cleaned files (prevents content loss)
+  - Result: Forces sequential execution - verify count, create fallbacks, run cat, verify word count
+
+- **meeting-transcriber**: Strengthened transcript-cleaner agent spawning to prevent inconsistent prompt usage
+  - Root cause: Half the agents (9 of 18) used short "Use the skill" prompts despite ultra-explicit instructions
+  - Added triple emoji warning header before Task tool creation
+  - Expanded failure pattern examples to show exactly what NOT to do
+  - Added explicit check-before-submit section: "Check your Task tool calls before submitting"
+  - Added post-prompt reminder: "USE THE FULL PROMPT ABOVE FOR EVERY CHUNK"
+  - Result: Every chunk should now get full multi-line prompt with STEP 1-4
+
+### Technical Details
+V1.0.13 completely failed because the orchestrating agent never reached the restructured Step 2A-2 instructions. After launching cleaning agents, it immediately pattern-matched on "reassemble chunks" and read all 18 chunk files, skipping both CHECKPOINT 1 (verification) and Step 2A-2 (cat command). The agent treats meeting-transcriber.md as reference context rather than sequential instructions.
+
+V1.0.14 addresses this by embedding verification and reassembly as immediate post-agent ACTIONS with overwhelming visual prominence (triple emoji warnings, failure conditions at end). The agent can no longer complete "launch agents" without immediately seeing "YOUR NEXT ACTIONS" with verification and cat commands.
+
+Additionally, 50% of transcript-cleaner agents were failing with "0 tool uses" because the orchestrating agent inconsistently applied prompts even within the same batch. V1.0.14 adds multiple checkpoints reminding the agent to use full prompts for ALL chunks.
+
 ## [1.0.13] - 2025-11-26
 
 ### Important
