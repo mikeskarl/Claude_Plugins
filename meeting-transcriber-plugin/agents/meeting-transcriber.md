@@ -105,9 +105,11 @@ Execute this action:
    - Use the same SCRIPTS_DIR from Phase 1
    - Script splits transcript into ~500 word chunks at logical boundaries
    - Script saves chunks to `/tmp/meeting-chunk-{timestamp}-{N}.md`
+   - **NEW in v1.0.16:** Script also generates pre-configured Task tool calls JSON
    - Capture the output to extract:
      - `CHUNK_COUNT={number}` - How many chunks were created
      - Multiple lines of `CHUNK_FILE=/tmp/meeting-chunk-{timestamp}-{N}.md`
+     - `TASK_CALLS_JSON=/tmp/meeting-task-calls-{timestamp}.json` - Pre-generated Task tool calls
 
 Example output to parse:
 ```
@@ -117,9 +119,10 @@ CHUNK_COUNT=28
 CHUNK_FILE=/tmp/meeting-chunk-1762945602-001.md
 CHUNK_FILE=/tmp/meeting-chunk-1762945602-002.md
 ...
+TASK_CALLS_JSON=/tmp/meeting-task-calls-1762945602.json
 ```
 
-Store the CHUNK_COUNT and list of CHUNK_FILE paths for Phase 2.
+Store the CHUNK_COUNT, list of CHUNK_FILE paths, and TASK_CALLS_JSON path for Phase 2.
 
 ### PHASE 2: AI Processing (Claude + Agents)
 
@@ -133,125 +136,103 @@ Execute these agent launches:
   - description: "Extract meeting metadata"
   - prompt: "Use the metadata-extractor skill to extract metadata from transcript file: {RAW_FILE from Phase 1}. Return JSON with date, title, participants, client, project, region, tags."
 
-**Agents B1-BN: Launch Cleaning Agents for Each Chunk**
+**Agents B1-BN: Launch Cleaning Agents Using Pre-Generated Task Calls**
 
-⛔⛔⛔ **MANDATORY VERIFICATION TOKEN SYSTEM** ⛔⛔⛔
+## ⚡ NEW IN v1.0.16: PRE-GENERATED TASK CALLS ⚡
 
-**Every Task tool prompt MUST contain this exact string:**
-```
-[VERIFICATION:TRANSCRIPT_CLEANER_V1.0.15]
-```
-
-**If any prompt is missing this token, that agent WILL FAIL and produce no output.**
-
-This token PROVES you copied the full prompt template below instead of writing your own short prompt.
+**The chunking script now generates all Task tool calls for you.** You NO LONGER need to write prompts manually.
 
 ---
 
-## HOW TO CREATE TASK TOOL CALLS
+## STEP 1: Read the Pre-Generated Task Calls JSON
 
-**DO NOT write prompts from memory. DO NOT paraphrase. COPY the template below EXACTLY.**
-
-For each chunk file, create ONE Task tool call using this EXACT template:
-
-**TEMPLATE TO COPY:**
-
+From Phase 1B output, locate the TASK_CALLS_JSON path:
 ```
-Task tool with:
-  subagent_type: "general-purpose"
-  description: "Clean transcript chunk {CHUNK_NUM}"
-  prompt: "[VERIFICATION:TRANSCRIPT_CLEANER_V1.0.15]
-
-Clean this transcript chunk. Follow these steps exactly:
-
-STEP 1: Use Read tool to read the input file:
-- file_path: {CHUNK_INPUT_PATH}
-
-STEP 2: Clean the transcript by removing ONLY filler words:
-- Remove: \"um\", \"uh\", \"like\" (when filler), \"you know\", \"sort of\", \"kind of\"
-- Fix spelling/grammar errors
-- Add punctuation where missing
-- Keep speaker labels consistent
-- DO NOT rewrite sentences or summarize
-- Preserve 95-100% of original word count
-
-STEP 3: Use Write tool to save the cleaned transcript:
-- file_path: {CHUNK_OUTPUT_PATH}
-- content: [your cleaned transcript]
-
-STEP 4: Count words and output verification block:
-=== TRANSCRIPT-CLEANER VERIFICATION ===
-OUTPUT_FILE_WRITTEN: YES
-OUTPUT_FILE_PATH: {CHUNK_OUTPUT_PATH}
-INPUT_WORD_COUNT: [original word count]
-OUTPUT_WORD_COUNT: [cleaned word count]
-REDUCTION_PERCENT: [percentage]%
-STATUS: SUCCESS
-=== END VERIFICATION ===
-
-CRITICAL: You MUST use Read and Write tools. If you just describe what you would do, you have FAILED."
+TASK_CALLS_JSON=/tmp/meeting-task-calls-{TIMESTAMP}.json
 ```
 
-**PLACEHOLDER REPLACEMENT:**
-- `{CHUNK_NUM}`: 001, 002, 003, etc.
-- `{CHUNK_INPUT_PATH}`: /tmp/meeting-chunk-{TIMESTAMP}-{CHUNK_NUM}.md
-- `{CHUNK_OUTPUT_PATH}`: /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{CHUNK_NUM}.md
-
-**EXAMPLE for chunk 001 with timestamp 1764175668:**
-
+**Use Read tool to read this JSON file:**
 ```
-Task tool with:
-  subagent_type: "general-purpose"
-  description: "Clean transcript chunk 001"
-  prompt: "[VERIFICATION:TRANSCRIPT_CLEANER_V1.0.15]
+Read tool with file_path: /tmp/meeting-task-calls-{TIMESTAMP}.json
+```
 
-Clean this transcript chunk. Follow these steps exactly:
+Replace `{TIMESTAMP}` with the actual timestamp from Phase 1.
 
-STEP 1: Use Read tool to read the input file:
-- file_path: /tmp/meeting-chunk-1764175668-001.md
-
-STEP 2: Clean the transcript by removing ONLY filler words:
-- Remove: \"um\", \"uh\", \"like\" (when filler), \"you know\", \"sort of\", \"kind of\"
-- Fix spelling/grammar errors
-- Add punctuation where missing
-- Keep speaker labels consistent
-- DO NOT rewrite sentences or summarize
-- Preserve 95-100% of original word count
-
-STEP 3: Use Write tool to save the cleaned transcript:
-- file_path: /tmp/meeting-chunk-cleaned-1764175668-001.md
-- content: [your cleaned transcript]
-
-STEP 4: Count words and output verification block:
-=== TRANSCRIPT-CLEANER VERIFICATION ===
-OUTPUT_FILE_WRITTEN: YES
-OUTPUT_FILE_PATH: /tmp/meeting-chunk-cleaned-1764175668-001.md
-INPUT_WORD_COUNT: [original word count]
-OUTPUT_WORD_COUNT: [cleaned word count]
-REDUCTION_PERCENT: [percentage]%
-STATUS: SUCCESS
-=== END VERIFICATION ===
-
-CRITICAL: You MUST use Read and Write tools. If you just describe what you would do, you have FAILED."
+**Example:**
+```
+Read tool with file_path: /tmp/meeting-task-calls-1764184422.json
 ```
 
 ---
 
-## 🚫 FORBIDDEN PROMPTS 🚫
+## STEP 2: Parse and Execute Each Task Tool Call
 
-**These prompts will FAIL because they lack the verification token:**
+The JSON contains a `task_calls` array. Each element has:
+- `subagent_type`: Always "general-purpose"
+- `description`: "Clean transcript chunk {NUM}"
+- `prompt`: Full prompt with verification token and step-by-step instructions
 
-❌ "Use the transcript-cleaner skill to clean this transcript..."
-❌ "Clean transcript file /tmp/meeting-chunk-X.md using the skill..."
-❌ "Please clean the transcript. Input file: X, Output file: Y"
+**For each task call in the array:**
 
-**If you write ANY prompt without the [VERIFICATION:TRANSCRIPT_CLEANER_V1.0.15] token at the start, that agent will produce ZERO output and fail silently.**
+Use Task tool with EXACTLY the parameters from the JSON:
+- subagent_type: [copy from JSON]
+- description: [copy from JSON]
+- prompt: [copy ENTIRE prompt string from JSON, preserving all line breaks and formatting]
+
+**CRITICAL:** Copy the prompt field EXACTLY as it appears in the JSON. DO NOT modify, summarize, or paraphrase it.
 
 ---
 
-**IMPORTANT:** Launch metadata-extractor AND all cleaning agents in the SAME response (parallel processing).
+## STEP 3: Launch All Agents in Parallel
+
+**Launch metadata-extractor AND all cleaning agents in the SAME response.**
 
 If there are many chunks (>10), launch in batches of 10 agents at a time.
+
+**Example for 3 chunks:**
+```
+Single response with multiple Task tool calls:
+
+1. Task(Extract meeting metadata)
+   - subagent_type: "general-purpose"
+   - description: "Extract meeting metadata"
+   - prompt: "Use the metadata-extractor skill to extract metadata..."
+
+2. Task(Clean transcript chunk 001)
+   - subagent_type: [from JSON]
+   - description: [from JSON]
+   - prompt: [ENTIRE prompt from JSON for chunk 001]
+
+3. Task(Clean transcript chunk 002)
+   - subagent_type: [from JSON]
+   - description: [from JSON]
+   - prompt: [ENTIRE prompt from JSON for chunk 002]
+
+4. Task(Clean transcript chunk 003)
+   - subagent_type: [from JSON]
+   - description: [from JSON]
+   - prompt: [ENTIRE prompt from JSON for chunk 003]
+```
+
+---
+
+## 🚫 CRITICAL RULES 🚫
+
+**YOU MUST:**
+- Read the task calls JSON file first
+- Copy each prompt EXACTLY from the JSON (including verification token)
+- Launch all agents in the same response
+
+**YOU MUST NOT:**
+- Write your own prompts for cleaning agents
+- Modify or summarize prompts from the JSON
+- Skip reading the JSON file
+
+**Why this works:**
+- The chunking script generates prompts with the correct verification token
+- All chunks get identical prompt structure (100% consistency)
+- No risk of agent pattern-matching on "clean transcript"
+- Eliminates the root cause of v1.0.10-v1.0.15 failures
 
 ---
 
