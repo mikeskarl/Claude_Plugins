@@ -5,6 +5,22 @@ All notable changes to the Claude Plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.12] - 2025-11-26
+
+### Important
+- **RESTART REQUIRED**: Claude Code must be restarted after updating to this version for changes to take effect
+
+### Fixed
+- **meeting-transcriber**: Removed skill names from section headers to eliminate pattern matching
+  - Changed "Step 2D: Launch People Normalizer" → "Step 2D: Normalize Participant Names"
+  - Changed "Step 2E: Launch Meeting Notes Generator" → "Step 2E: Generate Meeting Notes"
+  - Root cause: Section headers containing skill names triggered agents to create "Use the X skill" prompts, overriding the direct instructions below
+  - This applies the same successful pattern from v1.0.10 (which fixed transcript-cleaner) to Steps 2D and 2E
+  - All three agent types now use generic, action-based headers without skill name triggers
+
+### Technical Details
+While v1.0.11 added prohibition warnings and direct instructions, it retained skill names in the section headers for Steps 2D and 2E. The orchestrating agent pattern-matched on these header names first, ignoring the instructions below. v1.0.10 proved that removing "transcript-cleaner" from the header eliminated this behavior. v1.0.12 completes this fix by applying the same approach to people-normalizer and meeting-notes-generator headers.
+
 ## [1.0.11] - 2025-11-26
 
 ### Important

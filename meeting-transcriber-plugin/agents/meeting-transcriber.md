@@ -393,7 +393,7 @@ The cleaned transcript has been reassembled from chunks in Step 2A-2.
 
 CLEANED_FILE now contains the complete cleaned transcript and is ready for use in Step 2E.
 
-#### Step 2D: Launch People Normalizer
+#### Step 2D: Normalize Participant Names
 
 ⛔ **DO NOT create prompts like "Use the people-normalizer skill"** ⛔
 
@@ -447,7 +447,7 @@ Wait for agent to complete.
 
 Store normalized participant names (with wiki-links) for Phase 3.
 
-#### Step 2E: Launch Meeting Notes Generator
+#### Step 2E: Generate Meeting Notes
 
 ⛔ **DO NOT create prompts like "Use the meeting-notes-generator skill"** ⛔
 
