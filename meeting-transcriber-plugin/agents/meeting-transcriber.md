@@ -135,45 +135,37 @@ Execute these agent launches:
 
 **Agents B1-BN: Launch Cleaning Agents for Each Chunk**
 
-⛔⛔⛔ **CRITICAL: READ THIS BEFORE CREATING ANY TASK TOOL CALLS** ⛔⛔⛔
+⛔⛔⛔ **MANDATORY VERIFICATION TOKEN SYSTEM** ⛔⛔⛔
 
-**🚫 FAILURE PATTERNS - DO NOT DO THIS:**
-- "Use the transcript-cleaner skill to clean this transcript..."
-- "Please clean the transcript using the skill..."
-- "Apply the cleaning skill to this file..."
-- "Clean transcript file {path} using the skill..."
+**Every Task tool prompt MUST contain this exact string:**
+```
+[VERIFICATION:TRANSCRIPT_CLEANER_V1.0.15]
+```
 
-**✅ REQUIRED: You MUST copy the FULL prompt text from below**
+**If any prompt is missing this token, that agent WILL FAIL and produce no output.**
 
-**If ANY of your Task tool prompts contain phrases like "use the skill", "apply the skill", or "using the skill", YOU HAVE COMPLETELY FAILED.**
-
-**Every single Task tool call must have the FULL multi-line prompt with STEP 1, STEP 2, STEP 3, STEP 4.**
+This token PROVES you copied the full prompt template below instead of writing your own short prompt.
 
 ---
 
-For EACH chunk file from Phase 1B, you must launch a Task tool with these EXACT parameters:
+## HOW TO CREATE TASK TOOL CALLS
 
-🚫 **DO NOT CREATE SHORT PROMPTS FOR ANY CHUNKS** 🚫
+**DO NOT write prompts from memory. DO NOT paraphrase. COPY the template below EXACTLY.**
 
-**ALL 18 chunks (or however many) must get the FULL prompt below.**
+For each chunk file, create ONE Task tool call using this EXACT template:
 
-**TASK TOOL PARAMETERS:**
-- `subagent_type`: "general-purpose"
-- `description`: "Clean transcript chunk {N}" (replace {N} with actual number like 001, 002, etc.)
-- `prompt`: [See the EXAMPLE below first, then COPY THE FULL TEXT from the text block, replacing placeholders]
-
-**EXAMPLE TASK TOOL CALL FOR CHUNK 1:**
-
-Here is what your Task tool call should look like (with placeholders replaced):
+**TEMPLATE TO COPY:**
 
 ```
 Task tool with:
   subagent_type: "general-purpose"
-  description: "Clean transcript chunk 001"
-  prompt: "Clean this transcript chunk. Follow these steps exactly:
+  description: "Clean transcript chunk {CHUNK_NUM}"
+  prompt: "[VERIFICATION:TRANSCRIPT_CLEANER_V1.0.15]
+
+Clean this transcript chunk. Follow these steps exactly:
 
 STEP 1: Use Read tool to read the input file:
-- file_path: /tmp/meeting-chunk-1764101485-001.md
+- file_path: {CHUNK_INPUT_PATH}
 
 STEP 2: Clean the transcript by removing ONLY filler words:
 - Remove: \"um\", \"uh\", \"like\" (when filler), \"you know\", \"sort of\", \"kind of\"
@@ -184,13 +176,56 @@ STEP 2: Clean the transcript by removing ONLY filler words:
 - Preserve 95-100% of original word count
 
 STEP 3: Use Write tool to save the cleaned transcript:
-- file_path: /tmp/meeting-chunk-cleaned-1764101485-001.md
+- file_path: {CHUNK_OUTPUT_PATH}
 - content: [your cleaned transcript]
 
 STEP 4: Count words and output verification block:
 === TRANSCRIPT-CLEANER VERIFICATION ===
 OUTPUT_FILE_WRITTEN: YES
-OUTPUT_FILE_PATH: /tmp/meeting-chunk-cleaned-1764101485-001.md
+OUTPUT_FILE_PATH: {CHUNK_OUTPUT_PATH}
+INPUT_WORD_COUNT: [original word count]
+OUTPUT_WORD_COUNT: [cleaned word count]
+REDUCTION_PERCENT: [percentage]%
+STATUS: SUCCESS
+=== END VERIFICATION ===
+
+CRITICAL: You MUST use Read and Write tools. If you just describe what you would do, you have FAILED."
+```
+
+**PLACEHOLDER REPLACEMENT:**
+- `{CHUNK_NUM}`: 001, 002, 003, etc.
+- `{CHUNK_INPUT_PATH}`: /tmp/meeting-chunk-{TIMESTAMP}-{CHUNK_NUM}.md
+- `{CHUNK_OUTPUT_PATH}`: /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{CHUNK_NUM}.md
+
+**EXAMPLE for chunk 001 with timestamp 1764175668:**
+
+```
+Task tool with:
+  subagent_type: "general-purpose"
+  description: "Clean transcript chunk 001"
+  prompt: "[VERIFICATION:TRANSCRIPT_CLEANER_V1.0.15]
+
+Clean this transcript chunk. Follow these steps exactly:
+
+STEP 1: Use Read tool to read the input file:
+- file_path: /tmp/meeting-chunk-1764175668-001.md
+
+STEP 2: Clean the transcript by removing ONLY filler words:
+- Remove: \"um\", \"uh\", \"like\" (when filler), \"you know\", \"sort of\", \"kind of\"
+- Fix spelling/grammar errors
+- Add punctuation where missing
+- Keep speaker labels consistent
+- DO NOT rewrite sentences or summarize
+- Preserve 95-100% of original word count
+
+STEP 3: Use Write tool to save the cleaned transcript:
+- file_path: /tmp/meeting-chunk-cleaned-1764175668-001.md
+- content: [your cleaned transcript]
+
+STEP 4: Count words and output verification block:
+=== TRANSCRIPT-CLEANER VERIFICATION ===
+OUTPUT_FILE_WRITTEN: YES
+OUTPUT_FILE_PATH: /tmp/meeting-chunk-cleaned-1764175668-001.md
 INPUT_WORD_COUNT: [original word count]
 OUTPUT_WORD_COUNT: [cleaned word count]
 REDUCTION_PERCENT: [percentage]%
@@ -202,61 +237,15 @@ CRITICAL: You MUST use Read and Write tools. If you just describe what you would
 
 ---
 
-**NOW: COPY THE TEXT BELOW EXACTLY, WORD FOR WORD, CHARACTER FOR CHARACTER**
+## 🚫 FORBIDDEN PROMPTS 🚫
 
-**PLACEHOLDER REPLACEMENT:**
-Before using, replace:
-- `{CHUNK_FILE_PATH}`: Actual input chunk path (e.g., /tmp/meeting-chunk-1764101485-001.md)
-- `{OUTPUT_FILE_PATH}`: Output path (e.g., /tmp/meeting-chunk-cleaned-1764101485-001.md)
-  Format: /tmp/meeting-chunk-cleaned-{TIMESTAMP}-{NNN}.md
+**These prompts will FAIL because they lack the verification token:**
 
-**===== START PROMPT TEXT (copy everything between these markers) =====**
+❌ "Use the transcript-cleaner skill to clean this transcript..."
+❌ "Clean transcript file /tmp/meeting-chunk-X.md using the skill..."
+❌ "Please clean the transcript. Input file: X, Output file: Y"
 
-Clean this transcript chunk. Follow these steps exactly:
-
-STEP 1: Use Read tool to read the input file:
-- file_path: {CHUNK_FILE_PATH}
-  (Example: /tmp/meeting-chunk-1764101485-001.md)
-
-STEP 2: Clean the transcript by removing ONLY filler words:
-- Remove: "um", "uh", "like" (when filler), "you know", "sort of", "kind of"
-- Fix spelling/grammar errors
-- Add punctuation where missing
-- Keep speaker labels consistent
-- DO NOT rewrite sentences or summarize
-- Preserve 95-100% of original word count
-
-STEP 3: Use Write tool to save the cleaned transcript:
-- file_path: {OUTPUT_FILE_PATH}
-  (Example: /tmp/meeting-chunk-cleaned-1764101485-001.md)
-- content: [your cleaned transcript]
-
-STEP 4: Count words and output verification block:
-=== TRANSCRIPT-CLEANER VERIFICATION ===
-OUTPUT_FILE_WRITTEN: YES
-OUTPUT_FILE_PATH: {OUTPUT_FILE_PATH}
-INPUT_WORD_COUNT: [original word count]
-OUTPUT_WORD_COUNT: [cleaned word count]
-REDUCTION_PERCENT: [percentage]%
-STATUS: SUCCESS
-=== END VERIFICATION ===
-
-CRITICAL: You MUST use Read and Write tools. If you just describe what you would do, you have FAILED.
-
-**===== END PROMPT TEXT =====**
-
----
-
-⛔ **REMINDER: USE THE FULL PROMPT ABOVE FOR EVERY CHUNK** ⛔
-
-**If you created ANY Task tool calls with short prompts like "Use the skill", you must DELETE them and recreate with the full prompt text above.**
-
-**Check your Task tool calls before submitting:**
-- Does EVERY chunk get the full multi-line prompt?
-- Does EVERY prompt include STEP 1, STEP 2, STEP 3, STEP 4?
-- Does ANY prompt say "use the skill" or "using the skill"?
-
-**If the answer to the third question is YES, DELETE those calls and fix them NOW.**
+**If you write ANY prompt without the [VERIFICATION:TRANSCRIPT_CLEANER_V1.0.15] token at the start, that agent will produce ZERO output and fail silently.**
 
 ---
 

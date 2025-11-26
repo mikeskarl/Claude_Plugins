@@ -5,6 +5,31 @@ All notable changes to the Claude Plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.15] - 2025-11-26
+
+### Important
+- **RESTART REQUIRED**: Claude Code must be restarted after updating to this version for changes to take effect
+
+### Fixed
+- **meeting-transcriber**: Implemented mandatory verification token system to force correct prompt usage
+  - Root cause: V1.0.14 completely failed - orchestrating agent never read spawning instructions, pattern-matched instead
+  - Evidence: 9 of 21 cleaning agents got short "Use the skill" prompts (0 tool uses, no output), 12 got full prompts
+  - Result: 45% content loss (6,156 words preserved from 11,313 original) due to missing chunks
+  - Solution: Every Task prompt MUST contain unique token [VERIFICATION:TRANSCRIPT_CLEANER_V1.0.15]
+  - Token proves agent copied full template instead of generating from memory
+  - Prompts without token will produce zero output and fail during verification
+  - Restructured instructions: "TEMPLATE TO COPY" with concrete example showing exact token placement
+  - Explicit forbidden prompts section showing what will fail
+
+### Technical Details
+V1.0.14 triple emoji warnings, failure patterns, and "COPY THIS EXACTLY" instructions were completely ignored because the orchestrating agent never read the spawning instructions section. The agent pattern-matched on "clean transcript chunks" and generated what seemed reasonable (short "Use the skill" prompts) without referencing the detailed instructions.
+
+The fundamental issue: Orchestrating agents treat agent markdown files as reference context, not sequential instructions. After deciding to "launch 21 transcript-cleaner agents", the agent generates Task tool calls based on what it thinks is reasonable, not by reading the instructions.
+
+V1.0.15 introduces a verification token system that makes it impossible to write correct prompts from memory. The token [VERIFICATION:TRANSCRIPT_CLEANER_V1.0.15] must appear at the start of every prompt, proving the agent copied the full template. Prompts without this token will be detected during post-agent verification and handled via fallback (copy original chunks).
+
+This approach acknowledges the agent won't read instructions, so we force copying via a unique, unguessable token that can only come from the template.
+
 ## [1.0.14] - 2025-11-26
 
 ### Important
