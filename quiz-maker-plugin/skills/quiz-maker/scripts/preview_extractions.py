@@ -11,6 +11,9 @@ import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 from urllib.parse import unquote
+import html
+import base64
+from pathlib import Path
 
 
 class PreviewHandler(BaseHTTPRequestHandler):
@@ -38,11 +41,35 @@ class PreviewHandler(BaseHTTPRequestHandler):
             file_path = item.get('path', '')
             extracted = item.get('extracted', '')
 
+            # Escape HTML in extracted content for safe display in textarea
+            extracted_escaped = html.escape(extracted)
+
             # Show image preview for image files
             if file_type == 'image':
-                preview = f'<div class="image-preview"><img src="file://{file_path}" alt="{file_name}"></div>'
+                try:
+                    # Convert image to base64 for display in browser
+                    img_path = Path(file_path)
+                    if img_path.exists():
+                        with open(img_path, 'rb') as img_file:
+                            img_data = base64.b64encode(img_file.read()).decode()
+                            # Determine MIME type from extension
+                            ext = img_path.suffix.lower()
+                            mime_map = {
+                                '.jpg': 'image/jpeg',
+                                '.jpeg': 'image/jpeg',
+                                '.png': 'image/png',
+                                '.gif': 'image/gif',
+                                '.bmp': 'image/bmp',
+                                '.heic': 'image/heic'
+                            }
+                            mime_type = mime_map.get(ext, 'image/jpeg')
+                            preview = f'<div class="image-preview"><img src="data:{mime_type};base64,{img_data}" alt="{file_name}"></div>'
+                    else:
+                        preview = f'<div class="text-preview">Image not found: {file_path}</div>'
+                except Exception as e:
+                    preview = f'<div class="text-preview">Error loading image: {str(e)}</div>'
             else:
-                preview = '<div class="text-preview">No preview available</div>'
+                preview = f'<div class="text-preview"><strong>Source:</strong> {file_path}</div>'
 
             section = f'''
             <div class="extraction-item" data-index="{i}">
@@ -59,7 +86,7 @@ class PreviewHandler(BaseHTTPRequestHandler):
                     </div>
                     <div class="extracted-column">
                         <h4>Extracted Content</h4>
-                        <textarea class="extracted-text" data-index="{i}">{extracted}</textarea>
+                        <textarea class="extracted-text" data-index="{i}">{extracted_escaped}</textarea>
                     </div>
                 </div>
             </div>
@@ -173,8 +200,14 @@ class PreviewHandler(BaseHTTPRequestHandler):
             border: 2px solid #ddd;
             border-radius: 8px;
             padding: 15px;
-            color: #6c757d;
-            font-style: italic;
+            color: #333;
+            font-size: 12px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }}
+        .text-preview strong {{
+            color: #800000;
+            font-weight: 600;
         }}
         .extracted-text {{
             width: 100%;
