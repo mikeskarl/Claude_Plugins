@@ -95,10 +95,12 @@ Use the quiz-maker skill to create a quiz for my Economics test
    - Progress tracking
    - Study notes toggle
 
-8. **Output**: Three files saved
+8. **Output**: Five files saved
    - `quiz.html` - Interactive quiz
    - `questions.json` - Question bank
    - `metadata.json` - Generation info
+   - `extracted_content.json` - Raw extracted content
+   - `extracted_content.md` - Readable reference material
 
 ## Quiz Features
 
@@ -213,8 +215,17 @@ quiz-maker-plugin/
 └── {YYYY-MM-DD}_{subject}/
     ├── quiz.html
     ├── questions.json
-    └── metadata.json
+    ├── metadata.json
+    ├── extracted_content.json
+    └── extracted_content.md
 ```
+
+**Reference Material:**
+- `extracted_content.json` - Raw JSON format for programmatic access
+- `extracted_content.md` - Human-readable Markdown format with:
+  - Source file information
+  - Extracted text from each file
+  - Organized by file for easy reference
 
 ## Troubleshooting
 

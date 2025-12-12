@@ -251,7 +251,7 @@ def build_quiz_html(quiz_data, questions, template_html):
     return new_html
 
 
-def save_quiz_file(quiz_data, html_content, questions_json):
+def save_quiz_file(quiz_data, html_content, questions_json, extracted_content_json=None):
     """Save the quiz HTML and supporting files."""
 
     storage_root = get_storage_root()
@@ -286,6 +286,35 @@ def save_quiz_file(quiz_data, html_content, questions_json):
     json_file = output_dir / "questions.json"
     json_file.write_text(questions_json, encoding='utf-8')
 
+    # Save extracted content as reference material
+    if extracted_content_json:
+        extracted_file = output_dir / "extracted_content.json"
+        extracted_file.write_text(extracted_content_json, encoding='utf-8')
+
+        # Also create a readable markdown version
+        try:
+            extracted_data = json.loads(extracted_content_json)
+            md_content = "# Extracted Source Material\n\n"
+            md_content += f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+
+            for i, item in enumerate(extracted_data, 1):
+                file_name = item.get('name', 'Unknown')
+                file_type = item.get('type', 'unknown')
+                file_path = item.get('path', '')
+                extracted_text = item.get('extracted', '')
+
+                md_content += f"## {i}. {file_name}\n\n"
+                md_content += f"**Type:** {file_type}  \n"
+                md_content += f"**Source:** `{file_path}`\n\n"
+                md_content += "### Extracted Content\n\n"
+                md_content += f"{extracted_text}\n\n"
+                md_content += "---\n\n"
+
+            md_file = output_dir / "extracted_content.md"
+            md_file.write_text(md_content, encoding='utf-8')
+        except Exception as e:
+            print(f"WARNING: Could not create markdown version: {e}", file=sys.stderr)
+
     # Save metadata
     metadata = {
         'generated': datetime.now().isoformat(),
@@ -303,6 +332,9 @@ def save_quiz_file(quiz_data, html_content, questions_json):
     print(f"HTML: {html_file}")
     print(f"Questions JSON: {json_file}")
     print(f"Metadata: {metadata_file}")
+    if extracted_content_json:
+        print(f"Extracted Content JSON: {output_dir / 'extracted_content.json'}")
+        print(f"Extracted Content MD: {output_dir / 'extracted_content.md'}")
 
     print(f"\nOUTPUT_DIR={output_dir}")
     print(f"HTML_FILE={html_file}")
@@ -313,11 +345,12 @@ def save_quiz_file(quiz_data, html_content, questions_json):
 def main():
     """Main entry point."""
     if len(sys.argv) < 3:
-        print("Usage: build_final_html.py '<quiz_data_json>' '<questions_json>'", file=sys.stderr)
+        print("Usage: build_final_html.py '<quiz_data_json>' '<questions_json>' ['<extracted_content_json>']", file=sys.stderr)
         sys.exit(1)
 
     quiz_data_json = sys.argv[1]
     questions_json = sys.argv[2]
+    extracted_content_json = sys.argv[3] if len(sys.argv) > 3 else None
 
     quiz_data = json.loads(quiz_data_json)
     questions = json.loads(questions_json)
@@ -332,8 +365,8 @@ def main():
     # Build final HTML
     html_content = build_quiz_html(quiz_data, questions, enhanced_template)
 
-    # Save files
-    output_dir, html_file = save_quiz_file(quiz_data, html_content, questions_json)
+    # Save files (including extracted content if provided)
+    output_dir, html_file = save_quiz_file(quiz_data, html_content, questions_json, extracted_content_json)
 
     print("\n✓ Quiz generation complete!")
 

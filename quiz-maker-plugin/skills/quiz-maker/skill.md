@@ -228,7 +228,7 @@ Store the final approved questions as FINAL_QUESTIONS.
 
 Execute:
 ```bash
-python3 {SCRIPTS_DIR}/build_final_html.py '{QUIZ_PARAMS}' '{FINAL_QUESTIONS}'
+python3 {SCRIPTS_DIR}/build_final_html.py '{QUIZ_PARAMS}' '{FINAL_QUESTIONS}' '{FINAL_EXTRACTIONS}'
 ```
 
 The script will:
@@ -236,10 +236,12 @@ The script will:
 - Enhance with print support and answer key modal
 - Embed the question data
 - Create output directory: {storage_root}/{YYYY-MM-DD}_{subject}/
-- Save three files:
+- Save five files:
   - quiz.html (the interactive quiz)
   - questions.json (for future edits)
   - metadata.json (generation info)
+  - extracted_content.json (raw extracted content)
+  - extracted_content.md (readable reference material)
 
 Capture the output paths:
 - OUTPUT_DIR
@@ -258,6 +260,8 @@ Files created:
   ✓ quiz.html - Interactive quiz (open in browser)
   ✓ questions.json - Question bank for future edits
   ✓ metadata.json - Generation metadata
+  ✓ extracted_content.json - Raw extracted content (JSON)
+  ✓ extracted_content.md - Readable reference material (Markdown)
 
 Quiz Details:
   • Class: {className}
