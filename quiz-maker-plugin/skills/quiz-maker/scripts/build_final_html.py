@@ -8,6 +8,7 @@ import sys
 import json
 from pathlib import Path
 from datetime import datetime
+import shutil
 
 from config import get_storage_root
 
@@ -291,6 +292,41 @@ def save_quiz_file(quiz_data, html_content, questions_json, extracted_content_js
         extracted_file = output_dir / "extracted_content.json"
         extracted_file.write_text(extracted_content_json, encoding='utf-8')
 
+        # Copy source files to output directory
+        try:
+            extracted_data = json.loads(extracted_content_json)
+            source_files_dir = output_dir / "source_files"
+            source_files_dir.mkdir(exist_ok=True)
+
+            copied_files = []
+            for i, item in enumerate(extracted_data, 1):
+                file_path = item.get('path', '')
+                if file_path:
+                    source_path = Path(file_path)
+                    if source_path.exists():
+                        try:
+                            # Copy file with unique name if needed
+                            dest_name = source_path.name
+                            dest_path = source_files_dir / dest_name
+
+                            # Handle name conflicts
+                            counter = 1
+                            while dest_path.exists():
+                                stem = source_path.stem
+                                suffix = source_path.suffix
+                                dest_name = f"{stem}_{counter}{suffix}"
+                                dest_path = source_files_dir / dest_name
+                                counter += 1
+
+                            shutil.copy2(source_path, dest_path)
+                            copied_files.append(dest_name)
+                        except Exception as e:
+                            print(f"WARNING: Could not copy {source_path.name}: {e}", file=sys.stderr)
+
+            print(f"Copied {len(copied_files)} source files to source_files/")
+        except Exception as e:
+            print(f"WARNING: Could not copy source files: {e}", file=sys.stderr)
+
         # Also create a readable markdown version
         try:
             extracted_data = json.loads(extracted_content_json)
@@ -305,7 +341,8 @@ def save_quiz_file(quiz_data, html_content, questions_json, extracted_content_js
 
                 md_content += f"## {i}. {file_name}\n\n"
                 md_content += f"**Type:** {file_type}  \n"
-                md_content += f"**Source:** `{file_path}`\n\n"
+                md_content += f"**Source:** `{file_path}`  \n"
+                md_content += f"**Copied to:** `source_files/{file_name}`\n\n"
                 md_content += "### Extracted Content\n\n"
                 md_content += f"{extracted_text}\n\n"
                 md_content += "---\n\n"
@@ -335,6 +372,7 @@ def save_quiz_file(quiz_data, html_content, questions_json, extracted_content_js
     if extracted_content_json:
         print(f"Extracted Content JSON: {output_dir / 'extracted_content.json'}")
         print(f"Extracted Content MD: {output_dir / 'extracted_content.md'}")
+        print(f"Source Files: {output_dir / 'source_files/'}")
 
     print(f"\nOUTPUT_DIR={output_dir}")
     print(f"HTML_FILE={html_file}")

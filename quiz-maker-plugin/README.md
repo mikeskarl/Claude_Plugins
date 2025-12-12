@@ -217,7 +217,11 @@ quiz-maker-plugin/
     ├── questions.json
     ├── metadata.json
     ├── extracted_content.json
-    └── extracted_content.md
+    ├── extracted_content.md
+    └── source_files/
+        ├── note1.jpg
+        ├── textbook.pdf
+        └── study_guide.md
 ```
 
 **Reference Material:**
@@ -226,6 +230,7 @@ quiz-maker-plugin/
   - Source file information
   - Extracted text from each file
   - Organized by file for easy reference
+- `source_files/` - Copies of all original source materials (images, PDFs, text files)
 
 ## Troubleshooting
 

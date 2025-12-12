@@ -236,12 +236,13 @@ The script will:
 - Enhance with print support and answer key modal
 - Embed the question data
 - Create output directory: {storage_root}/{YYYY-MM-DD}_{subject}/
-- Save five files:
+- Save files:
   - quiz.html (the interactive quiz)
   - questions.json (for future edits)
   - metadata.json (generation info)
   - extracted_content.json (raw extracted content)
   - extracted_content.md (readable reference material)
+  - source_files/ (copies of all original source materials)
 
 Capture the output paths:
 - OUTPUT_DIR
@@ -262,6 +263,7 @@ Files created:
   ✓ metadata.json - Generation metadata
   ✓ extracted_content.json - Raw extracted content (JSON)
   ✓ extracted_content.md - Readable reference material (Markdown)
+  ✓ source_files/ - Copies of all original source materials
 
 Quiz Details:
   • Class: {className}
