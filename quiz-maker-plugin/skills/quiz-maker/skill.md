@@ -117,7 +117,7 @@ Capture the FILE_INVENTORY JSON and store for Phase 3.
 
 Use Task tool with:
 - subagent_type: "general-purpose"
-- model: "opus" (IMPORTANT for image processing)
+- model: "claude-opus-4-5-20251101" (IMPORTANT: Use Opus 4.5 or newer for image processing)
 - description: "Extract content from source materials"
 - prompt: "Use the source-material-processor skill to extract content from all source files.
 
@@ -133,6 +133,8 @@ Wait for agent to complete.
 Store the extraction results as EXTRACTED_CONTENT.
 
 **Step 3.2: Preview Extractions**
+
+**IMPORTANT**: Only run this step AFTER you have received the complete EXTRACTED_CONTENT from the agent in Step 3.1. Do NOT run the preview script before the extraction is complete.
 
 Execute:
 ```bash

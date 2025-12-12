@@ -193,7 +193,7 @@ class PreviewHandler(BaseHTTPRequestHandler):
         .buttons {{
             position: sticky;
             bottom: 0;
-            background: white;
+            background: #800000;
             padding: 20px;
             box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
             display: flex;
@@ -210,18 +210,19 @@ class PreviewHandler(BaseHTTPRequestHandler):
             transition: all 0.2s;
         }}
         #cancel {{
-            background-color: #6c757d;
+            background-color: #000000;
             color: white;
         }}
         #cancel:hover {{
-            background-color: #5a6268;
+            background-color: #333333;
         }}
         #continue {{
-            background-color: #800000;
-            color: white;
+            background-color: white;
+            color: #800000;
+            border: 2px solid white;
         }}
         #continue:hover {{
-            background-color: #660000;
+            background-color: #f0f0f0;
         }}
         button:active {{
             transform: scale(0.98);

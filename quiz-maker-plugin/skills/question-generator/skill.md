@@ -76,6 +76,8 @@ Format:
 }
 ```
 
+**IMPORTANT**: The field name MUST be "notes" (not "studyNote" or "note") to work with the HTML template.
+
 **Requirements:**
 - 4 options per question
 - One clearly correct answer
@@ -97,6 +99,11 @@ Format:
 }
 ```
 
+**IMPORTANT**:
+- MUST include "options": ["True", "False"] array
+- correctAnswer MUST be exactly "True" or "False" (capital T/F)
+- Field name MUST be "notes" (not "studyNote")
+
 **Requirements:**
 - Clear, unambiguous statements
 - Avoid trick questions or technicalities
@@ -114,6 +121,8 @@ Format:
   "notes": "Market equilibrium occurs when quantity supplied equals quantity demanded..."
 }
 ```
+
+**IMPORTANT**: Field name MUST be "notes" (not "studyNote" or "note")
 
 **Requirements:**
 - Single word or short phrase answer
@@ -183,6 +192,13 @@ Return a JSON array of questions:
     "notes": "..."
   },
   {
+    "type": "true-false",
+    "question": "...",
+    "options": ["True", "False"],
+    "correctAnswer": "True",
+    "notes": "..."
+  },
+  {
     "type": "fill-blank",
     "question": "...",
     "correctAnswer": "...",
@@ -190,6 +206,11 @@ Return a JSON array of questions:
   }
 ]
 ```
+
+**CRITICAL**:
+- Field name MUST be "notes" (not "studyNote", "note", or "studyNotes")
+- True/false questions MUST include "options": ["True", "False"]
+- True/false correctAnswer MUST be "True" or "False" with capital T/F
 
 ## Error Handling
 
