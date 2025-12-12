@@ -1,5 +1,5 @@
 {
-  "name": "claude-plugins",
+  "name": "mkarl-plugins",
   "owner": {
     "name": "Mike Karl",
     "email": "mike@example.com"
@@ -18,6 +18,18 @@
         "name": "Mike Karl"
       },
       "keywords": ["meeting", "transcription", "obsidian", "notes", "productivity"],
+      "category": "productivity",
+      "strict": false
+    },
+    {
+      "name": "quiz-maker",
+      "source": "./quiz-maker-plugin",
+      "description": "Generate interactive study quizzes from source materials (text, images, PDFs) with customizable question types and difficulty levels",
+      "version": "1.0.0",
+      "author": {
+        "name": "Mike Karl"
+      },
+      "keywords": ["quiz", "study", "test", "education", "learning", "homework"],
       "category": "productivity",
       "strict": false
     }

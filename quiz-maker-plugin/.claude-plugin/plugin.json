@@ -1,0 +1,9 @@
+{
+  "name": "quiz-maker",
+  "description": "Generate interactive study quizzes from source materials (text, images, PDFs) with customizable question types and difficulty levels",
+  "version": "1.0.0",
+  "author": {
+    "name": "Mike Karl"
+  },
+  "keywords": ["quiz", "study", "test", "education", "learning", "homework"]
+}
