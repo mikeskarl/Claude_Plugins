@@ -1,21 +1,62 @@
 # Meeting Transcriber Plugin for Claude Code
 
+> **The Problem:** You attend a 90-minute meeting. The transcript is 15,000 words of rambling conversation with "ums," "uhs," and crosstalk. You need professional notes for your team by EOD.
+>
+> **The Solution:** Paste your transcript, wait 2 minutes, get beautifully formatted Obsidian notes with summaries, action items, and decisions.
+
 A Claude Code plugin that transforms meeting transcripts into professional Obsidian-formatted notes with AI-powered processing.
 
 ## Features
 
-- Web-based input dialog with date/time collection
-- Handles transcripts of any size (tested up to 50,000+ words)
-- Optional meeting date and time input (defaults to today/09:00 if not provided)
-- Chunked processing prevents timeouts on long transcripts
-- Parallel AI agent processing for efficiency
-- Automatic YAML frontmatter generation with separate date and time fields
-- Meeting notes with executive summary, discussions, decisions, and action items
-- Cleaned transcript preservation (95-100% of original content)
-- People name normalization against your Obsidian vault
-- User-specific configuration for Obsidian paths
+- ✅ Web-based input dialog with date/time collection
+- ✅ Handles transcripts of any size (tested up to 50,000+ words)
+- ✅ Optional meeting date and time input (defaults to today/09:00 if not provided)
+- ✅ Chunked processing prevents timeouts on long transcripts
+- ✅ Parallel AI agent processing for efficiency
+- ✅ Automatic YAML frontmatter generation with separate date and time fields
+- ✅ Meeting notes with executive summary, discussions, decisions, and action items
+- ✅ Cleaned transcript preservation (95-100% of original content)
+- ✅ People name normalization against your Obsidian vault
+- ✅ User-specific configuration for Obsidian paths
 
-## Installation
+## What You Get
+
+From a raw transcript like this:
+```
+Speaker 1: Um, so yeah, we need to, uh, discuss the Q4 roadmap...
+Speaker 2: Right, so I was thinking...
+```
+
+To beautifully formatted notes like this:
+```yaml
+---
+title: Q4 Roadmap Planning
+date: 2025-12-18
+time: "14:00"
+participants: [[John Smith]], [[Sarah Johnson]]
+---
+
+## Executive Summary
+The team aligned on Q4 priorities including...
+
+## Key Decisions
+- Decision to prioritize feature X over Y
+- Budget allocation approved for $50k
+
+## Action Items
+- [ ] @John Smith to draft proposal by Dec 20
+```
+
+## Real-World Use Cases
+
+- **Consultants:** Document client calls with automatic participant tracking
+- **Project Managers:** Transform daily standups into actionable task lists
+- **Researchers:** Convert interview transcripts into structured insights
+- **Teams:** Keep everyone aligned with meeting summaries
+
+## Installation (2 minutes)
+
+> **Quick Start:** Three commands and you're done.
 
 ### Via Claude Code Marketplace (Recommended)
 
@@ -29,7 +70,7 @@ A Claude Code plugin that transforms meeting transcripts into professional Obsid
    /plugin install meeting-transcriber@claude-plugins
    ```
 
-3. **Restart Claude Code** to load the plugin
+3. **Restart Claude Code** and you're ready to go!
 
 ### Verify Installation
 

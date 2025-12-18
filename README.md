@@ -1,6 +1,16 @@
 # Claude Code Plugins
 
-A collection of Claude Code plugins for productivity workflows.
+![GitHub stars](https://img.shields.io/github/stars/mikeskarl/Claude_Plugins?style=social)
+![Version](https://img.shields.io/badge/version-1.0.16-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Plugins](https://img.shields.io/badge/plugins-2-purple)
+
+Professional-grade Claude Code plugins that automate tedious workflows. Transform meeting transcripts into structured notes, generate study materials from any content, and more.
+
+## Why Use These Plugins?
+
+- **Meeting Transcriber** - Process 2-hour meeting transcripts into organized Obsidian notes in 2 minutes. Perfect for consultants, PMs, and anyone drowning in meeting notes.
+- **Quiz Maker** - Generate interactive study quizzes from any source material (PDFs, images, text). Great for educators and students.
 
 ## Installation via Claude Code Marketplace
 
@@ -32,14 +42,26 @@ After installation, restart Claude Code to load the new plugins.
 
 ### [Meeting Transcriber](./meeting-transcriber-plugin/)
 
-Transform meeting transcripts into professional Obsidian-formatted notes with AI-powered processing.
+**Automate your meeting documentation workflow.**
 
-**Features:**
-- Web-based transcript input dialog
-- Handles transcripts of any size (tested up to 50,000+ words)
-- Chunked processing prevents timeouts on long transcripts
-- Parallel AI agent processing for efficiency
-- User-specific configuration for Obsidian vault paths
+- ✅ Handles transcripts up to 50,000+ words
+- ✅ Generates executive summaries, action items, and decisions
+- ✅ Integrates seamlessly with Obsidian vaults
+- ✅ Normalizes participant names automatically
+- ✅ Preserves 95-100% of original content in cleaned transcripts
+
+**Use Cases:** Client meetings, team standups, interviews, consultations
+
+### [Quiz Maker](./quiz-maker-plugin/)
+
+**Generate study materials from any content source.**
+
+- ✅ Supports text, images, and PDF sources
+- ✅ Customizable question types and difficulty levels
+- ✅ Interactive quiz format
+- ✅ Perfect for creating homework or study guides
+
+**Use Cases:** Teachers creating assignments, students preparing for exams, training materials
 
 ## Managing Plugins
 
