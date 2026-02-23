@@ -5,6 +5,16 @@ All notable changes to the Claude Plugins marketplace will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.17] - 2026-02-23
+
+### Added
+- **clipboard-utilities**: New plugin for copying formatted text to clipboard without paste issues
+  - Clean paragraph formatting - each paragraph as single line, no extra returns when pasting
+  - Cross-platform support - macOS (pbcopy), Linux (xclip), Windows (clip), WSL2 (clip.exe), SSH (OSC 52)
+  - Automatic platform detection and clipboard command selection
+  - Perfect for drafting emails and documents that paste cleanly into any application
+  - Includes comprehensive skill documentation with examples and troubleshooting
+
 ## [1.0.16] - 2025-11-26
 
 ### Important

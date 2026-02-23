@@ -1,9 +1,9 @@
 # Claude Code Plugins
 
 ![GitHub stars](https://img.shields.io/github/stars/mikeskarl/Claude_Plugins?style=social)
-![Version](https://img.shields.io/badge/version-1.0.16-blue)
+![Version](https://img.shields.io/badge/version-1.0.17-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Plugins](https://img.shields.io/badge/plugins-2-purple)
+![Plugins](https://img.shields.io/badge/plugins-3-purple)
 
 Professional-grade Claude Code plugins that automate tedious workflows. Transform meeting transcripts into structured notes, generate study materials from any content, and more.
 
@@ -11,6 +11,7 @@ Professional-grade Claude Code plugins that automate tedious workflows. Transfor
 
 - **Meeting Transcriber** - Process 2-hour meeting transcripts into organized Obsidian notes in 2 minutes. Perfect for consultants, PMs, and anyone drowning in meeting notes.
 - **Quiz Maker** - Generate interactive study quizzes from any source material (PDFs, images, text). Great for educators and students.
+- **Clipboard Utilities** - Copy formatted text to clipboard without paste formatting issues. Works across macOS, Linux, Windows, and SSH.
 
 ## Installation via Claude Code Marketplace
 
@@ -62,6 +63,17 @@ After installation, restart Claude Code to load the new plugins.
 - ✅ Perfect for creating homework or study guides
 
 **Use Cases:** Teachers creating assignments, students preparing for exams, training materials
+
+### [Clipboard Utilities](./clipboard-utilities-plugin/)
+
+**Copy formatted text without paste formatting issues.**
+
+- ✅ Clean paragraph formatting (no extra line breaks)
+- ✅ Cross-platform support (macOS, Linux, Windows, WSL, SSH)
+- ✅ Automatic clipboard detection
+- ✅ Perfect for email drafting and document creation
+
+**Use Cases:** Email drafting, document creation, copying formatted text across applications
 
 ## Managing Plugins
 
