@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Claude Code plugins for productivity workflows",
-    "version": "1.0.16"
+    "version": "1.0.17"
   },
   "plugins": [
     {
@@ -30,6 +30,18 @@
         "name": "Mike Karl"
       },
       "keywords": ["quiz", "study", "test", "education", "learning", "homework"],
+      "category": "productivity",
+      "strict": false
+    },
+    {
+      "name": "clipboard-utilities",
+      "source": "./clipboard-utilities-plugin",
+      "description": "Clipboard utilities for copying formatted text without paste issues",
+      "version": "1.0.0",
+      "author": {
+        "name": "Mike Karl"
+      },
+      "keywords": ["clipboard", "copy", "paste", "text", "formatting"],
       "category": "productivity",
       "strict": false
     }
