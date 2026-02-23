@@ -1,11 +1,13 @@
 {
   "name": "claude-plugins",
-  "description": "Claude Code plugins for productivity workflows - includes Meeting Transcriber",
-  "version": "1.0.0",
+  "description": "Claude Code plugins for productivity workflows - includes Meeting Transcriber, Quiz Maker, and Clipboard Utilities",
+  "version": "1.0.17",
   "author": "Mike Karl",
   "repository": "https://github.com/mikeskarl/Claude_Plugins",
-  "keywords": ["meeting", "transcription", "obsidian", "notes", "productivity"],
+  "keywords": ["meeting", "transcription", "obsidian", "notes", "productivity", "quiz", "study", "clipboard", "text"],
   "plugins": [
-    "meeting-transcriber-plugin"
+    "meeting-transcriber-plugin",
+    "quiz-maker-plugin",
+    "clipboard-utilities-plugin"
   ]
 }
