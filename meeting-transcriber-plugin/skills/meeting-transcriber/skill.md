@@ -265,6 +265,48 @@ Execute this action:
    - Look for line: `OUTPUT_FILE={configured_meetings_folder}/{filename}`
    - Store for user confirmation
 
+### PHASE 3.5: Validate YAML Frontmatter
+
+After assembly, validate the YAML frontmatter in the output file to catch any parsing issues before presenting to the user.
+
+Execute this action:
+
+1. **Run YAML validation**:
+   - Use Bash tool with command:
+     ```bash
+     python3 -c "
+     import yaml, re, sys
+     content = open('/PATH/TO/OUTPUT_FILE', encoding='utf-8').read()
+     match = re.match(r'\\^---\\n(.*?)\\n---', content, re.DOTALL)
+     if not match:
+         print('YAML_VALID: NO - No frontmatter found')
+         sys.exit(1)
+     try:
+         data = yaml.safe_load(match.group(1))
+         print('YAML_VALID: YES')
+         for k, v in data.items():
+             print(f'  {k}: {repr(v)[:80]}')
+     except yaml.YAMLError as e:
+         print(f'YAML_VALID: NO - {e}')
+         sys.exit(1)
+     "
+     ```
+   - Replace `/PATH/TO/OUTPUT_FILE` with the actual OUTPUT_FILE path from Phase 3
+
+2. **If YAML_VALID: NO**:
+   - Read the output file
+   - Identify the problematic field(s) from the error message
+   - Common fixes:
+     - **Unquoted values with colons**: wrap value in double quotes
+     - **Tags in JSON array format `["a","b"]`**: convert to YAML block sequence with `- tag` per line
+     - **Multiline unquoted values**: use YAML literal block (`|`) or quote the value
+   - Apply fixes using Python directly on the file (not the Write tool)
+   - Re-run validation to confirm fixed
+
+3. **If YAML_VALID: YES**:
+   - Confirm all key fields are populated: date, title, participants, summary
+   - Proceed to Phase 4
+
 ### PHASE 4: Confirm to User
 
 Provide clear confirmation:

@@ -127,10 +127,10 @@ def build_yaml_frontmatter(metadata, participants):
     if time_met and ':' not in str(time_met):
         time_met = '09:00'
 
-    # Format tags - handle None
+    # Format tags as YAML block sequence (Obsidian preferred format)
     tags_list = metadata.get('tags') or []
     if tags_list:
-        tags_str = '[' + ', '.join(f'"{tag}"' for tag in tags_list) + ']'
+        tags_str = '\n' + '\n'.join(f'  - {tag}' for tag in tags_list)
     else:
         tags_str = '[]'
 
@@ -151,7 +151,7 @@ region: "{metadata.get('region') or ''}"
 participants:
 {participants_yaml}
 previous meeting:
-summary: {{SUMMARY_PLACEHOLDER}}
+summary: "{{SUMMARY_PLACEHOLDER}}"
 home: "[[Home]]"
 ---"""
 
@@ -255,7 +255,8 @@ def assemble_and_save(cleaned_file, metadata_text, people_text, notes_text):
 
     # Build YAML frontmatter
     yaml = build_yaml_frontmatter(metadata, participants)
-    yaml = yaml.replace('{SUMMARY_PLACEHOLDER}', summary)
+    summary_safe = summary.replace('"', '\\"')
+    yaml = yaml.replace('{SUMMARY_PLACEHOLDER}', summary_safe)
 
     # Assemble complete file
     complete_content = f"""{yaml}
